@@ -7,6 +7,9 @@ namespace VsQuest
         public override void Start(ICoreAPI api)
         {
             base.Start(api);
+
+            api.RegisterEntityBehaviorClass("updatekillquest", typeof(BehaviorUpdateKillquest));
+            api.RegisterEntityBehaviorClass("hasquests", typeof(EntityBehaviorHasQuests));
         }
     }
 }

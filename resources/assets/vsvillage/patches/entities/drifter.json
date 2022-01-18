@@ -1,0 +1,10 @@
+[
+    {
+      "op": "add",
+      "path": "/server/behaviors/-",
+      "value": {
+        "code": "updatekillquest"
+      },
+      "file": "game:entities/land/drifter.json"
+    }
+]
