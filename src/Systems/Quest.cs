@@ -1,29 +1,28 @@
 using System.Collections.Generic;
-using VintagestoryAPI.Math;
 
 namespace VsQuest
 {
     public class Quest
     {
-        public long questGiverId { get; set; }
-        public string questTitle { get; set; }
-        public string questDesc { get; set; }
-        public List<Objective> objectives { get; set; }
+        public string id { get; set; }
+        public int cooldown { get; set; }
+        public bool perPlayer { get; set; }
+        public List<string> prerequesits { get; set; }
+        public List<Objective> gatherObjectives { get; set; }
+        public List<Objective> killObjectives { get; set; }
+        public List<ItemReward> itemRewards { get; set; }
+        public List<string> actionRewardIds { get; set; }
     }
 
-    public abstract class Objective
+    public class Objective
     {
-        public abstract float progress { get; }
+        public List<string> validCodes { get; set; }
+        public int demand { get; set; }
     }
 
-    public class KillObjective : Objective
+    public class ItemReward
     {
-        public override float progress => (float)entitiesKilled / (float)entitiesToKill;
-        HashSet<string> validEntityCodes { get; set; }
-
-        public int entitiesToKill { get; set; }
-        public int entitiesKilled { get; private set; }
-
-        public void OnEntityKilled() { if (entitiesKilled < entitiesToKill) entitiesKilled++; }
+        public string itemCode { get; set; }
+        public int amount { get; set; }
     }
 }
