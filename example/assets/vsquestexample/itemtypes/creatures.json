@@ -1,0 +1,86 @@
+{
+    "code": "creature",
+    "class": "ItemCreature",
+    "maxstacksize": 64,
+    "variantgroups": [
+        {
+            "code": "type",
+            "states": [
+                "questgiver"
+            ]
+        }
+    ],
+    "shapeByType": {
+        "*-questgiver": {
+            "base": "game:entity/humanoid/trader"
+        }
+    },
+    "texturesByType": {
+        "*-questgiver": {
+            "skin": {
+                "base": "game:entity/humanoid/trader"
+            }
+        }
+    },
+    "creativeinventory": {
+        "general": [
+            "*"
+        ],
+        "items": [
+            "*"
+        ],
+        "creatures": [
+            "*"
+        ]
+    },
+    "materialDensity": 600,
+    "guiTransformByType": {
+        "*-questgiver*": {
+            "rotate": true,
+            "rotation": {
+                "x": 0,
+                "y": -90,
+                "z": -178
+            },
+            "origin": {
+                "x": 0.6,
+                "y": 0.78,
+                "z": 0.5
+            }
+        }
+    },
+    "tpHandTransformByType": {
+        "*-questgiver*": {
+            "translation": {
+                "x": -0.6,
+                "y": -1.1,
+                "z": -0.4
+            },
+            "rotation": {
+                "x": -85,
+                "y": -11,
+                "z": 89
+            },
+            "origin": {
+                "x": 0.5,
+                "y": 1,
+                "z": 0.5
+            },
+            "scale": 0.7
+        }
+    },
+    "fpHandTransformByType": {
+        "*-questgiver*": {
+            "translation": {
+                "x": 0.05,
+                "y": -0.3,
+                "z": 0
+            },
+            "rotation": {
+                "x": 165,
+                "y": 76,
+                "z": -180
+            }
+        }
+    }
+}

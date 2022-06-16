@@ -1,0 +1,15 @@
+{
+    "type": "content",
+    "modid": "vsquestexample",
+    "name": "VS Quest Example",
+    "side": "universal",
+    "authors": [
+        "G3rste"
+    ],
+    "description": "Example for using the vsquest api.",
+    "version": "0.0.1",
+    "dependencies": {
+        "game": "1.17.0-pre.1",
+        "vsquest": "0.0.1"
+    }
+}

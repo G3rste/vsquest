@@ -1,0 +1,51 @@
+ [
+            {
+              "id": "vsquestexample:quest1",
+              "cooldown": 20,
+              "perPlayer": true,
+              "gatherObjectives": [
+                  {
+                      "validCodes": [
+                          "bonysoil"
+                      ],
+                      "demand": 1
+                  }
+			  ],
+              "killObjectives": [
+                  {
+                      "validCodes": [
+                          "drifter-normal"
+                      ],
+                      "demand": 2
+                  }
+              ],
+              "itemRewards": [
+                  {
+                      "itemCode": "game:gear-rusty",
+                      "amount": 3
+                  }
+              ],
+              "actionRewardIds": []
+          },
+          {
+              "id": "vsquestexample:quest2",
+              "cooldown": 25,
+              "perPlayer": true,
+              "gatherObjectives": [],
+              "killObjectives": [
+                  {
+                      "validCodes": [
+                          "drifter-normal"
+                      ],
+                      "demand": 3
+                  }
+              ],
+              "itemRewards": [
+                  {
+                      "itemCode": "game:gear-rusty",
+                      "amount": 5
+                  }
+              ],
+              "actionRewardIds": []
+            }
+        ]

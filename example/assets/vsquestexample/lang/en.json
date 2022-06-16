@@ -1,0 +1,10 @@
+{
+	"item-creature-questgiver": "Questgiver",
+	
+    "quest1-title": "Kill drifters and gather bony soil",
+    "quest1-desc": "Kill 2 drifters and gather 1 bony soil.",
+    "quest1-obj": "Gathered bony soil: {0}/1<br>Killed drifters: {1}/2",
+    "quest2-title": "Kill drifters",
+    "quest2-desc": "Kill 3 drifters.",
+    "quest2-obj": "Killed drifters: {0}/3"
+}
