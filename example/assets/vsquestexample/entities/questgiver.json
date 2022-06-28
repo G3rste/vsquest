@@ -230,7 +230,8 @@
 				"code": "questgiver",
 				"quests": [
 					"vsquest:quest-kill30DriftersFor3Gears",
-					"vsquestexample:quest1"
+					"vsquestexample:quest1",
+					"vsquest:quest-gather20MeatFor4FlaxSeeds"
 				]
 			}
 		]

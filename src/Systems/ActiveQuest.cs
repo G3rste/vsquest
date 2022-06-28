@@ -11,7 +11,7 @@ namespace VsQuest
     {
         public long questGiverId { get; set; }
         public string questId { get; set; }
-        public List<EntityKillTracker> killTrackers { get; set; }
+        public List<EntityKillTracker> killTrackers { get; set; } = new List<EntityKillTracker>();
         public void OnEntityKilled(string entityCode)
         {
             foreach (var tracker in killTrackers)
