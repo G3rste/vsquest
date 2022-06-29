@@ -55,7 +55,7 @@ namespace VsQuest
                 if (availableQuestIds != null && availableQuestIds.Count > 0)
                 {
                     selectedAvailableQuestId = availableQuestIds[0];
-                    SingleComposer.AddDropDown(availableQuestIds.ToArray(), availableQuestIds.ConvertAll<string>(id => Lang.Get(id + "-title")).ToArray(), 0, onAvailableQuestSelectionChanged, ElementBounds.FixedOffseted(EnumDialogArea.RightTop, 0, 20, 400, 20))
+                    SingleComposer.AddDropDown(availableQuestIds.ToArray(), availableQuestIds.ConvertAll<string>(id => Lang.Get(id + "-title")).ToArray(), 0, onAvailableQuestSelectionChanged, ElementBounds.FixedOffseted(EnumDialogArea.RightTop, 0, 20, 400, 30))
                         .AddButton(Lang.Get("vsquest:button-cancel"), TryClose, ElementBounds.FixedOffseted(EnumDialogArea.LeftBottom, 10, -10, 200, 20))
                         .AddButton(Lang.Get("vsquest:button-accept"), acceptQuest, ElementBounds.FixedOffseted(EnumDialogArea.RightBottom, -10, -10, 200, 20))
                         .BeginChildElements(ElementBounds.Fixed(40, 60, 400, 500))
@@ -72,7 +72,7 @@ namespace VsQuest
             {
                 if (activeQuests != null && activeQuests.Count > 0)
                 {
-                    SingleComposer.AddDropDown(activeQuests.ConvertAll<string>(quest => quest.questId).ToArray(), activeQuests.ConvertAll<string>(quest => Lang.Get(quest.questId + "-title")).ToArray(), 0, onActiveQuestSelectionChanged, ElementBounds.FixedOffseted(EnumDialogArea.RightTop, 0, 20, 400, 20))
+                    SingleComposer.AddDropDown(activeQuests.ConvertAll<string>(quest => quest.questId).ToArray(), activeQuests.ConvertAll<string>(quest => Lang.Get(quest.questId + "-title")).ToArray(), 0, onActiveQuestSelectionChanged, ElementBounds.FixedOffseted(EnumDialogArea.RightTop, 0, 20, 400, 30))
                         .AddButton(Lang.Get("vsquest:button-cancel"), TryClose, ElementBounds.FixedOffseted(EnumDialogArea.LeftBottom, 10, -10, 200, 20))
                         .AddIf(selectedActiveQuest.isCompletable(player))
                             .AddButton(Lang.Get("vsquest:button-complete"), completeQuest, ElementBounds.FixedOffseted(EnumDialogArea.RightBottom, -10, -10, 200, 20))
@@ -99,7 +99,7 @@ namespace VsQuest
 
         private string questText(string questId)
         {
-            return String.Format("<strong>{0}</strong><br><br>{1}", Lang.Get(questId + "-title"), Lang.Get(questId + "-desc"));
+            return Lang.Get(questId + "-desc");
         }
 
         private string activeQuestText(ActiveQuest quest)
