@@ -7,11 +7,11 @@ namespace VsQuest
         public string id { get; set; }
         public int cooldown { get; set; }
         public bool perPlayer { get; set; }
-        public List<string> prerequesits { get; set; }
-        public List<Objective> gatherObjectives { get; set; }
-        public List<Objective> killObjectives { get; set; }
-        public List<ItemReward> itemRewards { get; set; }
-        public List<string> actionRewardIds { get; set; }
+        public string predecessor { get; set; }
+        public List<Objective> gatherObjectives { get; set; } = new List<Objective>();
+        public List<Objective> killObjectives { get; set; } = new List<Objective>();
+        public List<ItemReward> itemRewards { get; set; } = new List<ItemReward>();
+        public List<string> actionRewardIds { get; set; } = new List<string>();
     }
 
     public class Objective

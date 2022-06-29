@@ -231,7 +231,9 @@
 				"quests": [
 					"vsquest:quest-kill30DriftersFor3Gears",
 					"vsquestexample:quest1",
-					"vsquest:quest-gather20MeatFor4FlaxSeeds"
+					"vsquest:quest-gather20MeatFor4FlaxSeeds",
+					"vsquestexample:kill1drifter",
+					"vsquestexample:kill1deepdrifter"
 				]
 			}
 		]

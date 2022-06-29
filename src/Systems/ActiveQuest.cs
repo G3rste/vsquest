@@ -122,7 +122,7 @@ namespace VsQuest
     [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
     public class EntityKillTracker
     {
-        public HashSet<string> relevantEntityCodes { get; set; }
+        public HashSet<string> relevantEntityCodes { get; set; } = new HashSet<string>();
         public int kills { get; set; }
     }
 }

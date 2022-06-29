@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using ProtoBuf;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -132,6 +131,13 @@ namespace VsQuest
             var activeQuest = playerQuests.Find(item => item.questId == message.questId && item.questGiverId == message.questGiverId);
             activeQuest.completeQuest(fromPlayer);
             playerQuests.Remove(activeQuest);
+            var questgiver = sapi.World.GetEntityById(message.questGiverId);
+            rewardPlayer(fromPlayer, message, sapi, questgiver);
+            markQuestCompleted(fromPlayer, message, questgiver);
+        }
+
+        private void rewardPlayer(IServerPlayer fromPlayer, QuestCompletedMessage message, ICoreServerAPI sapi, Entity questgiver)
+        {
             var quest = questRegistry[message.questId];
             foreach (var reward in quest.itemRewards)
             {
@@ -143,10 +149,18 @@ namespace VsQuest
                 var stack = new ItemStack(item, reward.amount);
                 if (!fromPlayer.InventoryManager.TryGiveItemstack(stack))
                 {
-                    var questgiver = sapi.World.GetEntityById(message.questGiverId);
                     sapi.World.SpawnItemEntity(stack, questgiver.ServerPos.XYZ);
                 }
             }
+        }
+
+        private static void markQuestCompleted(IServerPlayer fromPlayer, QuestCompletedMessage message, Entity questgiver)
+        {
+            var completedQuests = new HashSet<string>(questgiver.WatchedAttributes.GetStringArray(String.Format("playercompleted-{0}", fromPlayer.PlayerUID), new string[0]));
+            completedQuests.Add(message.questId);
+            var completedQuestsArray = new string[completedQuests.Count];
+            completedQuests.CopyTo(completedQuestsArray);
+            questgiver.WatchedAttributes.SetStringArray(String.Format("playercompleted-{0}", fromPlayer.PlayerUID), completedQuestsArray);
         }
 
         private void OnQuestInfoMessage(QuestInfoMessage message, ICoreClientAPI capi)

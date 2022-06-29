@@ -6,5 +6,11 @@
     "quest1-obj": "Gathered bony soil: {0}/1<br>Killed drifters: {1}/2",
     "quest2-title": "Kill drifters",
     "quest2-desc": "Kill 3 drifters.",
-    "quest2-obj": "Killed drifters: {0}/3"
+    "quest2-obj": "Killed drifters: {0}/3",
+    "kill1drifter-title": "Kill 1 surface drifter",
+    "kill1drifter-desc": "Kill 1 surface drifter. If you succeed I have another mission for you.",
+    "kill1drifter-obj": "Killed drifters: {0}/1",
+    "kill1deepdrifter-title": "Kill 1 deep drifter",
+    "kill1deepdrifter-desc": "Kill 1 deep drifter.",
+    "kill1deepdrifter-obj": "Killed drifters: {0}/1"
 }

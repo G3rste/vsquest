@@ -35,7 +35,8 @@ namespace VsQuest
                     var quest = questSystem.questRegistry[questId];
                     var key = quest.perPlayer ? String.Format("lastaccepted-{0}-{1}", questId, entity.EntityId) : String.Format("lastaccepted-{0}", questId);
                     if (entity.WatchedAttributes.GetDouble(key) + quest.cooldown < sapi.World.Calendar.TotalDays
-                            && activeQuests.Find(activeQuest => activeQuest.questId == questId) == null)
+                            && activeQuests.Find(activeQuest => activeQuest.questId == questId) == null
+                            && predecessorsCompleted(quest, player.PlayerUID))
                     {
                         availableQuestIds.Add(questId);
                     }
@@ -49,6 +50,13 @@ namespace VsQuest
 
                 sapi.Network.GetChannel("vsquest").SendPacket<QuestInfoMessage>(message, player.Player as IServerPlayer);
             }
+        }
+
+        private bool predecessorsCompleted(Quest quest, string playerUID)
+        {
+            var completedQuests = new List<string>(entity.WatchedAttributes.GetStringArray(String.Format("playercompleted-{0}", playerUID), new string[0]));
+            return String.IsNullOrEmpty(quest.predecessor)
+                || completedQuests.Contains(quest.predecessor);
         }
 
         public override string PropertyName() => "questgiver";
