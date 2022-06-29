@@ -34,7 +34,7 @@ namespace VsQuest
                 {
                     var quest = questSystem.questRegistry[questId];
                     var key = quest.perPlayer ? String.Format("lastaccepted-{0}-{1}", questId, entity.EntityId) : String.Format("lastaccepted-{0}", questId);
-                    if (entity.WatchedAttributes.GetDouble(key) + quest.cooldown < sapi.World.Calendar.TotalDays
+                    if (entity.WatchedAttributes.GetDouble(key, -quest.cooldown) + quest.cooldown < sapi.World.Calendar.TotalDays
                             && activeQuests.Find(activeQuest => activeQuest.questId == questId) == null
                             && predecessorsCompleted(quest, player.PlayerUID))
                     {
