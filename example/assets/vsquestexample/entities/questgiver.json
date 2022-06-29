@@ -234,7 +234,9 @@
 					"vsquest:quest-gather20MeatFor4FlaxSeeds",
 					"vsquestexample:kill1drifter",
 					"vsquestexample:kill1deepdrifter"
-				]
+				],
+				"selectrandom": true,
+				"selectrandomcount": 4
 			}
 		]
 	},

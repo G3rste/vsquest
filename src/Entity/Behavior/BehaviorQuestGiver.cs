@@ -5,12 +5,15 @@ using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
+using System.Security.Cryptography;
 
 namespace VsQuest
 {
     public class EntityBehaviorQuestGiver : EntityBehavior
     {
         private string[] quests;
+        private bool selectRandom;
+        private int selectRandomCount;
 
         public EntityBehaviorQuestGiver(Entity entity) : base(entity)
         {
@@ -19,7 +22,28 @@ namespace VsQuest
         public override void Initialize(EntityProperties properties, JsonObject attributes)
         {
             base.Initialize(properties, attributes);
+            selectRandom = attributes["selectrandom"].AsBool();
+            selectRandomCount = attributes["selectrandomcount"].AsInt(1);
             quests = attributes["quests"].AsArray<string>();
+
+            // simple randomizer that will always select the same quests for each entityId
+            if (selectRandom)
+            {
+                long seed = BitConverter.ToInt64(SHA256.Create().ComputeHash(BitConverter.GetBytes(entity.EntityId)), 0);
+                var resultList = new List<string>();
+                while (resultList.Count < selectRandomCount && selectRandomCount < quests.Length)
+                {
+                    foreach (var quest in quests)
+                    {
+                        if (seed % 2 == 0 && resultList.Count < selectRandomCount && !resultList.Contains(quest))
+                        {
+                            resultList.Add(quest);
+                        }
+                        seed = seed / 2;
+                    }
+                }
+                quests = resultList.ToArray();
+            }
         }
 
         public override void OnInteract(EntityAgent byEntity, ItemSlot itemslot, Vec3d hitPosition, EnumInteractMode mode, ref EnumHandling handled)
