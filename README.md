@@ -18,3 +18,10 @@ Every quest in the quests.json can have the following attributes:
 * **itemRewards**: list of items the player receives upon completing the quest
   * **itemCode**: code of the reward
   * **amount**: amount the player receives
+
+To convert an entity to a questgiver it needs the questgiver behavior:
+* **quests**: list of quests the questgiver offers
+* **selectrandom**: if set to true, the questgiver will only offer a random selection of its quests
+* **selectrandomcount**: determines the number of random quests the questgiver offers
+
+![Thumbnail](resources/modicon.png)
