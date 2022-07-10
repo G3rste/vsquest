@@ -27,6 +27,7 @@ namespace VsQuest
         {
             var questSystem = byPlayer.Entity.Api.ModLoader.GetModSystem<QuestSystem>();
             var quest = questSystem.questRegistry[questId];
+            var actionObjectives = quest.actionObjectives.ConvertAll<ActionObjective>(id => questSystem.actionObjectiveRegistry[id]);
             bool completable = true;
             for (int i = 0; i < quest.killObjectives.Count; i++)
             {
@@ -36,6 +37,9 @@ namespace VsQuest
             {
                 int itemsFound = itemsGathered(byPlayer, gatherObjective);
                 completable &= itemsFound >= gatherObjective.demand;
+            }
+            foreach(var actionObjective in actionObjectives){
+                completable &= actionObjective.isCompletable(byPlayer);
             }
             return completable;
         }
@@ -69,10 +73,22 @@ namespace VsQuest
             return quest.gatherObjectives.ConvertAll<int>(gatherObjective => itemsGathered(byPlayer, gatherObjective));
         }
 
+        public List<int> actionProgress(IPlayer byPlayer){
+            var questSystem = byPlayer.Entity.Api.ModLoader.GetModSystem<QuestSystem>();
+            var quest = questSystem.questRegistry[questId];
+            var actionObjectives = quest.actionObjectives.ConvertAll<ActionObjective>(id => questSystem.actionObjectiveRegistry[id]);
+            List<int> result = new List<int>();
+            foreach (var actionObjective in actionObjectives){
+                result.AddRange(actionObjective.progress(byPlayer));
+            }
+            return result;
+        }
+
         public List<int> progress(IPlayer byPlayer)
         {
             var progress = gatherProgress(byPlayer);
             progress.AddRange(killProgress());
+            progress.AddRange(actionProgress(byPlayer));
             return progress;
         }
 

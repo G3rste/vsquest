@@ -1,22 +1,10 @@
 [
     {
-        "id": "vsquest:quest-kill30DriftersFor3Gears",
+        "id": "vsquest:quest-freeghost",
         "cooldown": 20,
         "perPlayer": true,
-        "prerequesits": [],
-        "gatherObjectives": [],
-        "killObjectives": [
-            {
-                "validCodes": [
-                    "drifter-normal",
-                    "drifter-deep",
-                    "drifter-tainted",
-                    "drifter-corrupt",
-                    "drifter-nightmare",
-                    "drifter-double-headed"
-                ],
-                "demand": 30
-            }
+        "actionObjectives": [
+            "plantflowers"
         ],
         "itemRewards": [
             {
@@ -24,165 +12,8 @@
                 "amount": 3
             }
         ],
-        "actionRewardIds": []
-    },
-    {
-        "id": "vsquest:quest-kill8NightmareDriftersFor5Gears",
-        "cooldown": 25,
-        "perPlayer": true,
-        "prerequesits": [],
-        "gatherObjectives": [],
-        "killObjectives": [
-            {
-                "validCodes": [
-                    "drifter-nightmare",
-                    "drifter-double-headed"
-                ],
-                "demand": 8
-            }
-        ],
-        "itemRewards": [
-            {
-                "itemCode": "game:gear-rusty",
-                "amount": 5
-            }
-        ],
-        "actionRewardIds": []
-    },
-    {
-        "id": "vsquest:quest-kill6WolvesFor2Gears",
-        "cooldown": 15,
-        "perPlayer": true,
-        "prerequesits": [],
-        "gatherObjectives": [],
-        "killObjectives": [
-            {
-                "validCodes": [
-                    "wolf-male",
-                    "wolf-female",
-                    "wolf-pup"
-                ],
-                "demand": 6
-            }
-        ],
-        "itemRewards": [
-            {
-                "itemCode": "game:gear-rusty",
-                "amount": 2
-            }
-        ],
-        "actionRewardIds": []
-    },
-    {
-        "id": "vsquest:quest-gather20MeatFor4FlaxSeeds",
-        "cooldown": 15,
-        "perPlayer": true,
-        "prerequesits": [],
-        "gatherObjectives": [
-            {
-                "validCodes": [
-                    "bushmeat-raw",
-                    "bushmeat-cooked",
-                    "bushmeat-cured",
-                    "redmeat-raw",
-                    "redmeat-cooked",
-                    "redmeat-cured",
-                    "poultry-raw",
-                    "poultry-cooked",
-                    "poultry-cured"
-                ],
-                "demand": 20
-            }
-        ],
-        "killObjectives": [],
-        "itemRewards": [
-            {
-                "itemCode": "game:seeds-flax",
-                "amount": 4
-            }
-        ],
-        "actionRewardIds": []
-    },
-    {
-        "id": "vsquest:quest-gather20MeatFor4ParsnipSeeds",
-        "cooldown": 15,
-        "perPlayer": true,
-        "prerequesits": [],
-        "gatherObjectives": [
-            {
-                "validCodes": [
-                    "bushmeat-raw",
-                    "bushmeat-cooked",
-                    "bushmeat-cured",
-                    "redmeat-raw",
-                    "redmeat-cooked",
-                    "redmeat-cured",
-                    "poultry-raw",
-                    "poultry-cooked",
-                    "poultry-cured"
-                ],
-                "demand": 20
-            }
-        ],
-        "killObjectives": [],
-        "itemRewards": [
-            {
-                "itemCode": "game:seeds-parsnip",
-                "amount": 4
-            }
-        ],
-        "actionRewardIds": []
-    },
-    {
-        "id": "vsquest:quest-gather20MeatFor4TurnipSeeds",
-        "cooldown": 15,
-        "perPlayer": true,
-        "prerequesits": [],
-        "gatherObjectives": [
-            {
-                "validCodes": [
-                    "bushmeat-raw",
-                    "bushmeat-cooked",
-                    "bushmeat-cured",
-                    "redmeat-raw",
-                    "redmeat-cooked",
-                    "redmeat-cured",
-                    "poultry-raw",
-                    "poultry-cooked",
-                    "poultry-cured"
-                ],
-                "demand": 20
-            }
-        ],
-        "killObjectives": [],
-        "itemRewards": [
-            {
-                "itemCode": "game:seeds-turnip",
-                "amount": 4
-            }
-        ],
-        "actionRewardIds": []
-    },
-    {
-        "id": "vsquest:quest-gather20CharcoalFor3Gears",
-        "cooldown": 15,
-        "perPlayer": true,
-        "prerequesits": [],
-        "gatherObjectives": [
-            {
-                "validCodes": [
-                    "charcoal"
-                ],
-                "demand": 20
-            }
-        ],
-        "killObjectives": [],
-        "itemRewards": [
-            {
-                "itemCode": "game:gear-rusty",
-                "amount": 3
-            }
-        ],
-        "actionRewardIds": []
+        "actionRewards": [
+            "despawnquestgiver"
+        ]
     }
 ]

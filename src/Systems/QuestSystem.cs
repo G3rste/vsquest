@@ -13,12 +13,18 @@ namespace VsQuest
     public class QuestSystem : ModSystem
     {
         public Dictionary<string, Quest> questRegistry { get; private set; } = new Dictionary<string, Quest>();
+        public Dictionary<string, Action<QuestCompletedMessage>> actionRewardRegistry { get; private set; } = new Dictionary<string, Action<QuestCompletedMessage>>();
+        public Dictionary<string, ActionObjective> actionObjectiveRegistry { get; private set; } = new Dictionary<string, ActionObjective>();
         private ConcurrentDictionary<string, List<ActiveQuest>> playerQuests = new ConcurrentDictionary<string, List<ActiveQuest>>();
         public override void Start(ICoreAPI api)
         {
             base.Start(api);
 
             api.RegisterEntityBehaviorClass("questgiver", typeof(EntityBehaviorQuestGiver));
+
+            actionRewardRegistry.Add("despawnquestgiver", message => api.World.GetEntityById(message.questGiverId).Die(EnumDespawnReason.Removed));
+            
+            actionObjectiveRegistry.Add("plantflowers", new ActionObjectiveNearbyFlowers());
         }
 
         public override void StartClientSide(ICoreClientAPI capi)
@@ -151,6 +157,10 @@ namespace VsQuest
                 {
                     sapi.World.SpawnItemEntity(stack, questgiver.ServerPos.XYZ);
                 }
+            }
+            var actionRewards = quest.actionRewards.ConvertAll<Action<QuestCompletedMessage>>(id => actionRewardRegistry[id]);
+            foreach(var actionReward in actionRewards){
+                actionReward.Invoke(message);
             }
         }
 
