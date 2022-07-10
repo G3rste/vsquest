@@ -209,18 +209,6 @@
 						"animation": "idle2"
 					},
 					{
-						"code": "wander",
-						"priority": 1.0,
-						"movespeed": 0.01,
-						"animation": "Walkbalanced",
-						"wanderChance": 0.005,
-						"maxDistanceToSpawn": 4,
-						"wanderRangeMin": 1,
-						"wanderRangeMax": 3,
-						"teleportWhenOutOfRange": true,
-						"teleportInGameHours": 1
-					},
-					{
 						"code": "lookaround",
 						"priority": 0.5
 					}
