@@ -1,5 +1,7 @@
 {
     "quest-select-title": "Quest offers",
+    "tab-available-quests": "Available Quests",
+    "tab-active-quests": "Active Quests",
     "button-cancel": "Cancel",
     "button-accept": "Accept",
     "button-complete": "Complete",

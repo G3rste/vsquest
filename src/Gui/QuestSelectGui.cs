@@ -40,8 +40,8 @@ namespace VsQuest
             ElementBounds bgBounds = ElementBounds.Fill.WithFixedPadding(GuiStyle.ElementToDialogPadding);
 
             GuiTab[] tabs = new GuiTab[] {
-                new GuiTab() { Name = "Available Quests", DataInt = 0 },
-                new GuiTab() { Name = "Active Quests", DataInt = 1 }
+                new GuiTab() { Name = Lang.Get("tab-available-quests"), DataInt = 0 },
+                new GuiTab() { Name = Lang.Get("tab-active-quests"), DataInt = 1 }
             };
 
             bgBounds.BothSizing = ElementSizing.FitToChildren;
@@ -72,7 +72,8 @@ namespace VsQuest
             {
                 if (activeQuests != null && activeQuests.Count > 0)
                 {
-                    SingleComposer.AddDropDown(activeQuests.ConvertAll<string>(quest => quest.questId).ToArray(), activeQuests.ConvertAll<string>(quest => Lang.Get(quest.questId + "-title")).ToArray(), 0, onActiveQuestSelectionChanged, ElementBounds.FixedOffseted(EnumDialogArea.RightTop, 0, 20, 400, 30))
+                    int selected = selectedActiveQuest == null ? 0 : activeQuests.FindIndex(match => match.questId == selectedActiveQuest.questId);
+                    SingleComposer.AddDropDown(activeQuests.ConvertAll<string>(quest => quest.questId).ToArray(), activeQuests.ConvertAll<string>(quest => Lang.Get(quest.questId + "-title")).ToArray(), selected, onActiveQuestSelectionChanged, ElementBounds.FixedOffseted(EnumDialogArea.RightTop, 0, 20, 400, 30))
                         .AddButton(Lang.Get("vsquest:button-cancel"), TryClose, ElementBounds.FixedOffseted(EnumDialogArea.LeftBottom, 10, -10, 200, 20))
                         .AddIf(selectedActiveQuest.isCompletable(player))
                             .AddButton(Lang.Get("vsquest:button-complete"), completeQuest, ElementBounds.FixedOffseted(EnumDialogArea.RightBottom, -10, -10, 200, 20))
