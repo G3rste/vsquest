@@ -1,0 +1,14 @@
+{
+    "quest-select-title": "Quest Angebote",
+    "tab-available-quests": "Verfügbare Quests",
+    "tab-active-quests": "Aktive Quests",
+    "button-cancel": "Abbrechen",
+    "button-accept": "Annehmen",
+    "button-complete": "Abschließen",
+    "no-quest-available-desc": "Aktuell benötige ich keine Hilfe.",
+    "no-quest-active-desc": "Du hast keine offenen Aufträge bei mir.",
+    
+    "quest-freeghost-title": "Ein schöner Platz für die ewige Ruhe",
+    "quest-freeghost-desc": "Dieser Ort sieht trist aus. Kannst du ein paar Blumen pflanzen, um ihn etwas schöner zu gestalten?",
+    "quest-freeghost-obj": "Gepflanzte Blumen: {0}/8"
+}
