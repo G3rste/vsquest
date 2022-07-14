@@ -6,6 +6,7 @@ using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using System.Security.Cryptography;
+using Vintagestory.API.Client;
 
 namespace VsQuest
 {
@@ -49,7 +50,7 @@ namespace VsQuest
         public override void OnInteract(EntityAgent byEntity, ItemSlot itemslot, Vec3d hitPosition, EnumInteractMode mode, ref EnumHandling handled)
         {
             base.OnInteract(byEntity, itemslot, hitPosition, mode, ref handled);
-            if (entity.Api is ICoreServerAPI sapi && byEntity is EntityPlayer player && mode == EnumInteractMode.Interact)
+            if (entity.Api is ICoreServerAPI sapi && byEntity is EntityPlayer player && mode == EnumInteractMode.Interact && player.Controls.Sneak)
             {
                 var questSystem = sapi.ModLoader.GetModSystem<QuestSystem>();
                 var activeQuests = questSystem.getPlayerQuests(player.PlayerUID, sapi).FindAll(quest => quest.questGiverId == entity.EntityId);
@@ -74,6 +75,17 @@ namespace VsQuest
 
                 sapi.Network.GetChannel("vsquest").SendPacket<QuestInfoMessage>(message, player.Player as IServerPlayer);
             }
+        }
+
+        public override WorldInteraction[] GetInteractionHelp(IClientWorldAccessor world, EntitySelection es, IClientPlayer player, ref EnumHandling handled)
+        {
+            return new WorldInteraction[] {
+                new WorldInteraction(){
+                    ActionLangCode = "vsquest:access-quests",
+                    MouseButton = EnumMouseButton.Right,
+                    HotKeyCode = "sneak"
+                }
+            };
         }
 
         private bool predecessorsCompleted(Quest quest, string playerUID)
