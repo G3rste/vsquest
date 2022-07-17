@@ -5,8 +5,8 @@
     "side": "universal",
     "author": "G3rste & Zwetsche",
     "description": "Mod that focuses on implementing a Quest System.",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "dependency": {
-        "game": "1.17.0-pre.1"
+        "game": "1.17.0-pre.4"
     }
 }
