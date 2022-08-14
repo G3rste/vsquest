@@ -40,8 +40,8 @@ namespace VsQuest
             ElementBounds bgBounds = ElementBounds.Fill.WithFixedPadding(GuiStyle.ElementToDialogPadding);
 
             GuiTab[] tabs = new GuiTab[] {
-                new GuiTab() { Name = Lang.Get("tab-available-quests"), DataInt = 0 },
-                new GuiTab() { Name = Lang.Get("tab-active-quests"), DataInt = 1 }
+                new GuiTab() { Name = Lang.Get("vsquest:tab-available-quests"), DataInt = 0 },
+                new GuiTab() { Name = Lang.Get("vsquest:tab-active-quests"), DataInt = 1 }
             };
 
             bgBounds.BothSizing = ElementSizing.FitToChildren;
