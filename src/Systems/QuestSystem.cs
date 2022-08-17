@@ -5,6 +5,7 @@ using ProtoBuf;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
+using Vintagestory.API.Config;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 
@@ -23,7 +24,7 @@ namespace VsQuest
             api.RegisterEntityBehaviorClass("questgiver", typeof(EntityBehaviorQuestGiver));
 
             actionRewardRegistry.Add("despawnquestgiver", (message, byPlayer) => api.World.GetEntityById(message.questGiverId).Die(EnumDespawnReason.Removed));
-            
+
             actionObjectiveRegistry.Add("plantflowers", new ActionObjectiveNearbyFlowers());
         }
 
@@ -135,11 +136,18 @@ namespace VsQuest
         {
             var playerQuests = getPlayerQuests(fromPlayer.PlayerUID, sapi);
             var activeQuest = playerQuests.Find(item => item.questId == message.questId && item.questGiverId == message.questGiverId);
-            activeQuest.completeQuest(fromPlayer);
-            playerQuests.Remove(activeQuest);
-            var questgiver = sapi.World.GetEntityById(message.questGiverId);
-            rewardPlayer(fromPlayer, message, sapi, questgiver);
-            markQuestCompleted(fromPlayer, message, questgiver);
+            if (activeQuest.isCompletable(fromPlayer))
+            {
+                activeQuest.completeQuest(fromPlayer);
+                playerQuests.Remove(activeQuest);
+                var questgiver = sapi.World.GetEntityById(message.questGiverId);
+                rewardPlayer(fromPlayer, message, sapi, questgiver);
+                markQuestCompleted(fromPlayer, message, questgiver);
+            }
+            else
+            {
+                sapi.SendMessage(fromPlayer, GlobalConstants.InfoLogChatGroup, "Something went wrong, the quest could not be completed", EnumChatType.Notification);
+            }
         }
 
         private void rewardPlayer(IServerPlayer fromPlayer, QuestCompletedMessage message, ICoreServerAPI sapi, Entity questgiver)
@@ -159,7 +167,8 @@ namespace VsQuest
                 }
             }
             var actionRewards = quest.actionRewards.ConvertAll<Action<QuestCompletedMessage, IPlayer>>(id => actionRewardRegistry[id]);
-            foreach(var actionReward in actionRewards){
+            foreach (var actionReward in actionRewards)
+            {
                 actionReward.Invoke(message, fromPlayer);
             }
         }
