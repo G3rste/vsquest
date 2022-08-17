@@ -38,7 +38,8 @@ namespace VsQuest
                 int itemsFound = itemsGathered(byPlayer, gatherObjective);
                 completable &= itemsFound >= gatherObjective.demand;
             }
-            foreach(var actionObjective in actionObjectives){
+            foreach (var actionObjective in actionObjectives)
+            {
                 completable &= actionObjective.isCompletable(byPlayer);
             }
             return completable;
@@ -73,12 +74,14 @@ namespace VsQuest
             return quest.gatherObjectives.ConvertAll<int>(gatherObjective => itemsGathered(byPlayer, gatherObjective));
         }
 
-        public List<int> actionProgress(IPlayer byPlayer){
+        public List<int> actionProgress(IPlayer byPlayer)
+        {
             var questSystem = byPlayer.Entity.Api.ModLoader.GetModSystem<QuestSystem>();
             var quest = questSystem.questRegistry[questId];
             var actionObjectives = quest.actionObjectives.ConvertAll<ActionObjective>(id => questSystem.actionObjectiveRegistry[id]);
             List<int> result = new List<int>();
-            foreach (var actionObjective in actionObjectives){
+            foreach (var actionObjective in actionObjectives)
+            {
                 result.AddRange(actionObjective.progress(byPlayer));
             }
             return result;
@@ -95,20 +98,19 @@ namespace VsQuest
         public int itemsGathered(IPlayer byPlayer, Objective gatherObjective)
         {
             int itemsFound = 0;
-            foreach (var inventory in byPlayer.InventoryManager.Inventories.Values)
+            
+            byPlayer.Entity.WalkInventory((slot) =>
             {
-                if (inventory.ClassName == GlobalConstants.creativeInvClassName)
+                if (slot is ItemSlotCreative || !(slot.Inventory is InventoryBasePlayer)) return true;
+
+                if (gatherObjective.validCodes.Contains(slot?.Itemstack?.Collectible?.Code?.Path))
                 {
-                    continue;
+                    itemsFound += slot.Itemstack.StackSize;
                 }
-                foreach (var slot in inventory)
-                {
-                    if (gatherObjective.validCodes.Contains(slot?.Itemstack?.Collectible?.Code?.Path))
-                    {
-                        itemsFound += slot.Itemstack.StackSize;
-                    }
-                }
-            }
+
+                return true;
+            });
+
             return itemsFound;
         }
 
