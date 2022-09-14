@@ -25,6 +25,9 @@ namespace VsQuest
 
             actionRegistry.Add("despawnquestgiver", (message, byPlayer, args) => api.World.RegisterCallback(dt => api.World.GetEntityById(message.questGiverId).Die(EnumDespawnReason.Removed), int.Parse(args[0])));
             actionRegistry.Add("playsound", (message, byPlayer, args) => api.World.PlaySoundFor(new AssetLocation(args[0]), byPlayer));
+            actionRegistry.Add("spawnentities", (message, byPlayer, args) => spawnEntities(api, message, byPlayer, args));
+            actionRegistry.Add("spawnany", (message, byPlayer, args) => spawnEntities(api, message, byPlayer, args));
+            actionRegistry.Add("recruitentity", (message, byPlayer, args) => recruitEntity(api, message, byPlayer, args));
 
             actionObjectiveRegistry.Add("plantflowers", new ActionObjectiveNearbyFlowers());
         }
@@ -191,6 +194,33 @@ namespace VsQuest
         private void OnQuestInfoMessage(QuestInfoMessage message, ICoreClientAPI capi)
         {
             new QuestSelectGui(capi, message.questGiverId, message.availableQestIds, message.activeQuests).TryOpen();
+        }
+
+        private void spawnEntities(ICoreAPI api, QuestMessage message, IPlayer byPlayer, string[] args)
+        {
+            foreach (var code in args)
+            {
+                var entity = api.World.ClassRegistry.CreateEntity(api.World.GetEntityType(new AssetLocation(code)));
+                entity.ServerPos = api.World.GetEntityById(message.questGiverId).ServerPos.Copy();
+                api.World.SpawnEntity(entity);
+            }
+        }
+
+        private void spawnAnyOfEntities(ICoreAPI api, QuestMessage message, IPlayer byPlayer, string[] args)
+        {
+            var code = args[api.World.Rand.Next(0, args.Length)];
+            var entity = api.World.ClassRegistry.CreateEntity(api.World.GetEntityType(new AssetLocation(code)));
+            entity.ServerPos = api.World.GetEntityById(message.questGiverId).ServerPos.Copy();
+            api.World.SpawnEntity(entity);
+        }
+
+        private void recruitEntity(ICoreAPI api, QuestMessage message, IPlayer byPlayer, string[] args)
+        {
+            var recruit = api.World.GetEntityById(message.questGiverId);
+            recruit.WatchedAttributes.SetDouble("employedSince", api.World.Calendar.TotalHours);
+            recruit.WatchedAttributes.SetString("guardedPlayerUid", byPlayer.PlayerUID);
+            recruit.WatchedAttributes.SetBool("commandSit", false);
+            recruit.WatchedAttributes.MarkPathDirty("guardedPlayerUid");
         }
     }
 
