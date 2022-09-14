@@ -69,18 +69,8 @@
 				"blendMode": "AddAverage"
 			},
 			{
-				"code": "rowdywelcome",
-				"animation": "rowdywelcome",
-				"blendMode": "AddAverage"
-			},
-			{
-				"code": "lazywelcome",
-				"animation": "lazywelcome",
-				"blendMode": "AddAverage"
-			},
-			{
-				"code": "lazynod",
-				"animation": "lazynod",
+				"code": "idle",
+				"animation": "lazyidle",
 				"blendMode": "AddAverage"
 			}
 		]
@@ -149,65 +139,6 @@
 			{
 				"code": "taskai",
 				"aitasks": [
-					{
-						"code": "meleeattack",
-						"entityCodes": [
-							"player"
-						],
-						"priority": 2,
-						"damage": 5,
-						"mincooldown": 2500,
-						"maxcooldown": 3500,
-						"attackDurationMs": 900,
-						"damagePlayerAtMs": 300,
-						"animation": "Attackbalanced",
-						"animationSpeed": 2,
-						"whenInEmotionState": "aggressiveondamage"
-					},
-					{
-						"code": "seekentity",
-						"entityCodes": [
-							"player"
-						],
-						"priority": 1.5,
-						"mincooldown": 1000,
-						"maxcooldown": 1500,
-						"seekingRange": 20,
-						"movespeed": 0.035,
-						"animation": "Runbalanced",
-						"animationSpeed": 1.75,
-						"whenInEmotionState": "aggressiveondamage"
-					},
-					{
-						"code": "fleeentity",
-						"entityCodes": [
-							"player"
-						],
-						"priority": 1.5,
-						"movespeed": 0.035,
-						"seekingRange": 12,
-						"animation": "Runbalanced",
-						"animationSpeed": 1.75,
-						"whenInEmotionState": "fleeondamage"
-					},
-					{
-						"code": "idle",
-						"priority": 1.2,
-						"minduration": 2500,
-						"maxduration": 2500,
-						"mincooldown": 2000,
-						"maxcooldown": 10000,
-						"animation": "laughbalanced"
-					},
-					{
-						"code": "idle",
-						"priority": 1.2,
-						"minduration": 2500,
-						"maxduration": 2500,
-						"mincooldown": 5000,
-						"maxcooldown": 30000,
-						"animation": "idle2"
-					},
 					{
 						"code": "lookaround",
 						"priority": 0.5
