@@ -4,7 +4,12 @@
         "cooldown": 20,
         "perPlayer": true,
         "actionObjectives": [
-            "plantflowers"
+            {
+                "id": "plantflowers",
+                "args": [
+                    "8"
+                ]
+            }
         ],
         "itemRewards": [
             {

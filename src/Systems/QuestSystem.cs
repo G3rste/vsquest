@@ -15,7 +15,7 @@ namespace VsQuest
     {
         public Dictionary<string, Quest> questRegistry { get; private set; } = new Dictionary<string, Quest>();
         public Dictionary<string, Action<QuestCompletedMessage, IPlayer>> actionRewardRegistry { get; private set; } = new Dictionary<string, Action<QuestCompletedMessage, IPlayer>>();
-        public Dictionary<string, ActionObjective> actionObjectiveRegistry { get; private set; } = new Dictionary<string, ActionObjective>();
+        public Dictionary<string, ActiveActionObjective> actionObjectiveRegistry { get; private set; } = new Dictionary<string, ActiveActionObjective>();
         private ConcurrentDictionary<string, List<ActiveQuest>> playerQuests = new ConcurrentDictionary<string, List<ActiveQuest>>();
         public override void Start(ICoreAPI api)
         {

@@ -27,7 +27,7 @@ namespace VsQuest
         {
             var questSystem = byPlayer.Entity.Api.ModLoader.GetModSystem<QuestSystem>();
             var quest = questSystem.questRegistry[questId];
-            var actionObjectives = quest.actionObjectives.ConvertAll<ActionObjective>(id => questSystem.actionObjectiveRegistry[id]);
+            var activeActionObjectives = quest.actionObjectives.ConvertAll<ActiveActionObjective>(objective => questSystem.actionObjectiveRegistry[objective.id]);
             bool completable = true;
             for (int i = 0; i < quest.killObjectives.Count; i++)
             {
@@ -38,9 +38,9 @@ namespace VsQuest
                 int itemsFound = itemsGathered(byPlayer, gatherObjective);
                 completable &= itemsFound >= gatherObjective.demand;
             }
-            foreach (var actionObjective in actionObjectives)
+            for (int i = 0; i < activeActionObjectives.Count; i++)
             {
-                completable &= actionObjective.isCompletable(byPlayer);
+                completable &= activeActionObjectives[i].isCompletable(byPlayer, quest.actionObjectives[i].args);
             }
             return completable;
         }
@@ -78,11 +78,11 @@ namespace VsQuest
         {
             var questSystem = byPlayer.Entity.Api.ModLoader.GetModSystem<QuestSystem>();
             var quest = questSystem.questRegistry[questId];
-            var actionObjectives = quest.actionObjectives.ConvertAll<ActionObjective>(id => questSystem.actionObjectiveRegistry[id]);
+            var activeActionObjectives = quest.actionObjectives.ConvertAll<ActiveActionObjective>(objective => questSystem.actionObjectiveRegistry[objective.id]);
             List<int> result = new List<int>();
-            foreach (var actionObjective in actionObjectives)
+            for (int i = 0; i < activeActionObjectives.Count; i++)
             {
-                result.AddRange(actionObjective.progress(byPlayer));
+                result.AddRange(activeActionObjectives[i].progress(byPlayer, quest.actionObjectives[i].args));
             }
             return result;
         }
@@ -98,7 +98,7 @@ namespace VsQuest
         public int itemsGathered(IPlayer byPlayer, Objective gatherObjective)
         {
             int itemsFound = 0;
-            
+
             byPlayer.Entity.WalkInventory((slot) =>
             {
                 if (slot is ItemSlotCreative || !(slot.Inventory is InventoryBasePlayer)) return true;

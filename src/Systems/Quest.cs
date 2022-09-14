@@ -10,7 +10,7 @@ namespace VsQuest
         public string predecessor { get; set; }
         public List<Objective> gatherObjectives { get; set; } = new List<Objective>();
         public List<Objective> killObjectives { get; set; } = new List<Objective>();
-        public List<string> actionObjectives { get; set; } = new List<string>();
+        public List<ActionObjective> actionObjectives { get; set; } = new List<ActionObjective>();
         public List<ItemReward> itemRewards { get; set; } = new List<ItemReward>();
         public List<string> actionRewards { get; set; } = new List<string>();
     }
@@ -25,5 +25,11 @@ namespace VsQuest
     {
         public string itemCode { get; set; }
         public int amount { get; set; }
+    }
+
+    public class ActionObjective
+    {
+        public string id { get; set; }
+        public string[] args { get; set; }
     }
 }
