@@ -14,7 +14,7 @@ namespace VsQuest
     public class QuestSystem : ModSystem
     {
         public Dictionary<string, Quest> questRegistry { get; private set; } = new Dictionary<string, Quest>();
-        public Dictionary<string, Action<QuestCompletedMessage, IPlayer>> actionRewardRegistry { get; private set; } = new Dictionary<string, Action<QuestCompletedMessage, IPlayer>>();
+        public Dictionary<string, Action<QuestCompletedMessage, IPlayer, string[]>> actionRewardRegistry { get; private set; } = new Dictionary<string, Action<QuestCompletedMessage, IPlayer, string[]>>();
         public Dictionary<string, ActiveActionObjective> actionObjectiveRegistry { get; private set; } = new Dictionary<string, ActiveActionObjective>();
         private ConcurrentDictionary<string, List<ActiveQuest>> playerQuests = new ConcurrentDictionary<string, List<ActiveQuest>>();
         public override void Start(ICoreAPI api)
@@ -23,7 +23,7 @@ namespace VsQuest
 
             api.RegisterEntityBehaviorClass("questgiver", typeof(EntityBehaviorQuestGiver));
 
-            actionRewardRegistry.Add("despawnquestgiver", (message, byPlayer) => api.World.GetEntityById(message.questGiverId).Die(EnumDespawnReason.Removed));
+            actionRewardRegistry.Add("despawnquestgiver", (message, byPlayer, args) => api.World.RegisterCallback(dt => api.World.GetEntityById(message.questGiverId).Die(EnumDespawnReason.Removed), int.Parse(args[0])));
 
             actionObjectiveRegistry.Add("plantflowers", new ActionObjectiveNearbyFlowers());
         }
@@ -166,10 +166,10 @@ namespace VsQuest
                     sapi.World.SpawnItemEntity(stack, questgiver.ServerPos.XYZ);
                 }
             }
-            var actionRewards = quest.actionRewards.ConvertAll<Action<QuestCompletedMessage, IPlayer>>(id => actionRewardRegistry[id]);
-            foreach (var actionReward in actionRewards)
+            var actionRewards = quest.actionRewards.ConvertAll<Action<QuestCompletedMessage, IPlayer, string[]>>(action => actionRewardRegistry[action.id]);
+            for (int i = 0; i < actionRewards.Count; i++)
             {
-                actionReward.Invoke(message, fromPlayer);
+                actionRewards[i].Invoke(message, fromPlayer, quest.actionRewards[i].args);
             }
         }
 

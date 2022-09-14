@@ -18,7 +18,12 @@
             }
         ],
         "actionRewards": [
-            "despawnquestgiver"
+            {
+                "id": "despawnquestgiver",
+                "args": [
+                    "8000"
+                ]
+            }
         ]
     }
 ]
