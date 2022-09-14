@@ -14,7 +14,7 @@ namespace VsQuest
     public class QuestSystem : ModSystem
     {
         public Dictionary<string, Quest> questRegistry { get; private set; } = new Dictionary<string, Quest>();
-        public Dictionary<string, Action<QuestCompletedMessage, IPlayer, string[]>> actionRewardRegistry { get; private set; } = new Dictionary<string, Action<QuestCompletedMessage, IPlayer, string[]>>();
+        public Dictionary<string, Action<QuestMessage, IPlayer, string[]>> actionRegistry { get; private set; } = new Dictionary<string, Action<QuestMessage, IPlayer, string[]>>();
         public Dictionary<string, ActiveActionObjective> actionObjectiveRegistry { get; private set; } = new Dictionary<string, ActiveActionObjective>();
         private ConcurrentDictionary<string, List<ActiveQuest>> playerQuests = new ConcurrentDictionary<string, List<ActiveQuest>>();
         public override void Start(ICoreAPI api)
@@ -23,7 +23,8 @@ namespace VsQuest
 
             api.RegisterEntityBehaviorClass("questgiver", typeof(EntityBehaviorQuestGiver));
 
-            actionRewardRegistry.Add("despawnquestgiver", (message, byPlayer, args) => api.World.RegisterCallback(dt => api.World.GetEntityById(message.questGiverId).Die(EnumDespawnReason.Removed), int.Parse(args[0])));
+            actionRegistry.Add("despawnquestgiver", (message, byPlayer, args) => api.World.RegisterCallback(dt => api.World.GetEntityById(message.questGiverId).Die(EnumDespawnReason.Removed), int.Parse(args[0])));
+            actionRegistry.Add("playsound", (message, byPlayer, args) => api.World.PlaySoundFor(new AssetLocation(args[0]), byPlayer));
 
             actionObjectiveRegistry.Add("plantflowers", new ActionObjectiveNearbyFlowers());
         }
@@ -108,6 +109,7 @@ namespace VsQuest
 
         private void OnQuestAccepted(IServerPlayer fromPlayer, QuestAcceptedMessage message, ICoreServerAPI sapi)
         {
+            sapi.Logger.Error(message.questId);
             var quest = questRegistry[message.questId];
             var killTrackers = new List<EntityKillTracker>();
             foreach (var killObjective in quest.killObjectives)
@@ -118,6 +120,11 @@ namespace VsQuest
                     relevantEntityCodes = new HashSet<string>(killObjective.validCodes)
                 };
                 killTrackers.Add(tracker);
+            }
+            foreach (var action in quest.onAcceptedActions)
+            {
+                sapi.Logger.Error(action.id);
+                actionRegistry[action.id].Invoke(message, fromPlayer, action.args);
             }
             var activeQuest = new ActiveQuest()
             {
@@ -166,10 +173,9 @@ namespace VsQuest
                     sapi.World.SpawnItemEntity(stack, questgiver.ServerPos.XYZ);
                 }
             }
-            var actionRewards = quest.actionRewards.ConvertAll<Action<QuestCompletedMessage, IPlayer, string[]>>(action => actionRewardRegistry[action.id]);
-            for (int i = 0; i < actionRewards.Count; i++)
+            foreach (var action in quest.actionRewards)
             {
-                actionRewards[i].Invoke(message, fromPlayer, quest.actionRewards[i].args);
+                actionRegistry[action.id].Invoke(message, fromPlayer, action.args);
             }
         }
 
@@ -188,16 +194,20 @@ namespace VsQuest
         }
     }
 
-    [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
-    public class QuestAcceptedMessage
+    [ProtoContract]
+    public class QuestAcceptedMessage : QuestMessage
     {
-        public string questId { get; set; }
+    }
 
-        public long questGiverId { get; set; }
+    [ProtoContract]
+    public class QuestCompletedMessage : QuestMessage
+    {
     }
 
     [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
-    public class QuestCompletedMessage
+    [ProtoInclude(10, typeof(QuestAcceptedMessage))]
+    [ProtoInclude(11, typeof(QuestCompletedMessage))]
+    public abstract class QuestMessage
     {
         public string questId { get; set; }
 

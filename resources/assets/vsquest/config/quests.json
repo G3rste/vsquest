@@ -3,6 +3,14 @@
         "id": "vsquest:quest-freeghost",
         "cooldown": 20,
         "perPlayer": true,
+        "onAcceptedActions": [
+            {
+                "id": "playsound",
+                "args": [
+                    "game:sounds/effect/translocate-breakdimension"
+                ]
+            }
+        ],
         "actionObjectives": [
             {
                 "id": "plantflowers",
