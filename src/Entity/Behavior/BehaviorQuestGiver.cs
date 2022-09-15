@@ -50,7 +50,7 @@ namespace VsQuest
         public override void OnInteract(EntityAgent byEntity, ItemSlot itemslot, Vec3d hitPosition, EnumInteractMode mode, ref EnumHandling handled)
         {
             base.OnInteract(byEntity, itemslot, hitPosition, mode, ref handled);
-            if (entity.Api is ICoreServerAPI sapi && byEntity is EntityPlayer player && mode == EnumInteractMode.Interact && player.Controls.Sneak)
+            if (entity.Alive && entity.Api is ICoreServerAPI sapi && byEntity is EntityPlayer player && mode == EnumInteractMode.Interact && player.Controls.Sneak)
             {
                 var questSystem = sapi.ModLoader.GetModSystem<QuestSystem>();
                 var activeQuests = questSystem.getPlayerQuests(player.PlayerUID, sapi).FindAll(quest => quest.questGiverId == entity.EntityId);
@@ -79,13 +79,17 @@ namespace VsQuest
 
         public override WorldInteraction[] GetInteractionHelp(IClientWorldAccessor world, EntitySelection es, IClientPlayer player, ref EnumHandling handled)
         {
-            return new WorldInteraction[] {
+            if (entity.Alive)
+            {
+                return new WorldInteraction[] {
                 new WorldInteraction(){
                     ActionLangCode = "vsquest:access-quests",
                     MouseButton = EnumMouseButton.Right,
                     HotKeyCode = "sneak"
                 }
             };
+            }
+            else { return base.GetInteractionHelp(world, es, player, ref handled); }
         }
 
         private bool predecessorsCompleted(Quest quest, string playerUID)
