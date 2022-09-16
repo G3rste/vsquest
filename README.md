@@ -9,15 +9,24 @@ Every quest in the quests.json can have the following attributes:
 * **cooldown**: cooldown in days until the questgiver offers the quest again
 * **predecessor**: optional -> questid that has to be completed before this quest becomes available
 * **perPlayer**: determines if the quest cooldown is set per player or globally
+* **onAcceptedActions**: list of actions that are executed after the quest was accepted
+  * **id**: unique id of the action
+  * **args**: arguments for the function called by the action, all supplied as strings
 * **gatherObjectives**: list of items the player has to offer
   * **validCodes**: list of accepted item codes
   * **demand**: needed amount
+* **actionObjectives**: list of objectives that rely on custom code
+  * **id**: unique id of the action objective to check
+  * **args**: arguments for the function called by the action objective, all supplied as strings
 * **killObjectives**: list of entities the player has to defeat
   * **validCodes**: list of accepted entity codes
   * **demand**: needed amount
 * **itemRewards**: list of items the player receives upon completing the quest
   * **itemCode**: code of the reward
   * **amount**: amount the player receives
+* **actionRewards**: list of rewards that rely on custom code, like spawning a certain creature, ...
+  * **id**: unique id of the action
+  * **args**: arguments for the function called by the action, all supplied as strings
 
 To convert an entity to a questgiver it needs the questgiver behavior:
 * **quests**: list of quests the questgiver offers
