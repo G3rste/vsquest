@@ -84,5 +84,69 @@
                 "amount": 1
             }
         ]
+    },
+    {
+        "id": "vsquestexample:talktootherguy",
+        "cooldown": 20,
+        "perPlayer": true,
+        "onAcceptedActions": [
+            {
+                "id": "acceptquest",
+                "args": [
+                    "3",
+                    "vsquestexample:talktome"
+                ]
+            }
+        ],
+        "actionObjectives": [
+            {
+                "id": "hasAttribute",
+                "args": [
+                    "talkedto",
+                    "3"
+                ]
+            }
+        ],
+        "killObjectives": [],
+        "itemRewards": [
+            {
+                "itemCode": "game:gear-rusty",
+                "amount": 1
+            }
+        ],
+        "actionRewards": [
+            {
+                "id": "removeplayerattribute",
+                "args": [
+                    "talkedto"
+                ]
+            }
+        ]
+    },
+    {
+        "id": "vsquestexample:talktome",
+        "cooldown": 20,
+        "perPlayer": true,
+        "itemRewards": [
+            {
+                "itemCode": "game:gear-rusty",
+                "amount": 1
+            }
+        ],
+        "actionRewards": [
+            {
+                "id": "addplayerattribute",
+                "args": [
+                    "talkedto",
+                    "3"
+                ]
+            },
+            {
+                "id": "playsound",
+                "args": [
+                    "game:sounds/voice/saxophone"
+                ]
+            }
+        ]
     }
 ]

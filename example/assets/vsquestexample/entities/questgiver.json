@@ -152,7 +152,8 @@
 					"vsquestexample:quest2",
 					"vsquestexample:kill1drifter",
 					"vsquestexample:kill1deepdrifter",
-					"vsquest:quest-freeghost"
+					"vsquest:quest-freeghost",
+					"vsquestexample:talktootherguy"
 				],
 				"selectrandom": true,
 				"selectrandomcount": 4

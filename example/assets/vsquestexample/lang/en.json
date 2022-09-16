@@ -12,5 +12,11 @@
     "kill1drifter-obj": "Killed drifters: {0}/1",
     "kill1deepdrifter-title": "Kill 1 deep drifter",
     "kill1deepdrifter-desc": "Kill 1 deep drifter.",
-    "kill1deepdrifter-obj": "Killed drifters: {0}/1"
+    "kill1deepdrifter-obj": "Killed drifters: {0}/1",
+    "talktootherguy-title": "Talk to that guy",
+    "talktootherguy-desc": "Talk to that guy with entity id 3.",
+    "talktootherguy-obj": "Talked to: {0}/1",
+    "talktome-title": "Talk to me",
+    "talktome-desc": "Hi thanks for checking in.",
+    "talktome-obj": ""
 }
