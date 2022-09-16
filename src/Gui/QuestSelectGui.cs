@@ -105,7 +105,15 @@ namespace VsQuest
 
         private string activeQuestText(ActiveQuest quest)
         {
-            return String.Format("{0}<br><br><strong>Progress</strong><br>{1}", questText(quest.questId), Lang.Get(quest.questId + "-obj", quest.progress(player).ConvertAll<string>(x => x.ToString()).ToArray()));
+            string progress = Lang.Get(quest.questId + "-obj", quest.progress(player).ConvertAll<string>(x => x.ToString()).ToArray());
+            if (string.IsNullOrEmpty(progress))
+            {
+                return questText(quest.questId);
+            }
+            else
+            {
+                return String.Format("{0}<br><br><strong>Progress</strong><br>{1}", questText(quest.questId), progress);
+            }
         }
 
         private bool acceptQuest()
