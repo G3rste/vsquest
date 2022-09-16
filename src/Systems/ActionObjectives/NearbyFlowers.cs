@@ -3,7 +3,7 @@ using Vintagestory.API.Common;
 
 namespace VsQuest
 {
-    public class ActionObjectiveNearbyFlowers : ActiveActionObjective
+    public class NearbyFlowersActionObjective : ActiveActionObjective
     {
         public bool isCompletable(IPlayer byPlayer, params string[] args)
         {

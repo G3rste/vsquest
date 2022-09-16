@@ -82,12 +82,12 @@ namespace VsQuest
             if (entity.Alive)
             {
                 return new WorldInteraction[] {
-                new WorldInteraction(){
-                    ActionLangCode = "vsquest:access-quests",
-                    MouseButton = EnumMouseButton.Right,
-                    HotKeyCode = "sneak"
-                }
-            };
+                    new WorldInteraction(){
+                        ActionLangCode = "vsquest:access-quests",
+                        MouseButton = EnumMouseButton.Right,
+                        HotKeyCode = "sneak"
+                    }
+                };
             }
             else { return base.GetInteractionHelp(world, es, player, ref handled); }
         }

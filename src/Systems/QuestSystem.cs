@@ -14,7 +14,7 @@ namespace VsQuest
     public class QuestSystem : ModSystem
     {
         public Dictionary<string, Quest> questRegistry { get; private set; } = new Dictionary<string, Quest>();
-        public Dictionary<string, Action<QuestMessage, IPlayer, string[]>> actionRegistry { get; private set; } = new Dictionary<string, Action<QuestMessage, IPlayer, string[]>>();
+        public Dictionary<string, Action<QuestMessage, IServerPlayer, string[]>> actionRegistry { get; private set; } = new Dictionary<string, Action<QuestMessage, IServerPlayer, string[]>>();
         public Dictionary<string, ActiveActionObjective> actionObjectiveRegistry { get; private set; } = new Dictionary<string, ActiveActionObjective>();
         private ConcurrentDictionary<string, List<ActiveQuest>> playerQuests = new ConcurrentDictionary<string, List<ActiveQuest>>();
         public override void Start(ICoreAPI api)
@@ -23,13 +23,10 @@ namespace VsQuest
 
             api.RegisterEntityBehaviorClass("questgiver", typeof(EntityBehaviorQuestGiver));
 
-            actionRegistry.Add("despawnquestgiver", (message, byPlayer, args) => api.World.RegisterCallback(dt => api.World.GetEntityById(message.questGiverId).Die(EnumDespawnReason.Removed), int.Parse(args[0])));
-            actionRegistry.Add("playsound", (message, byPlayer, args) => api.World.PlaySoundFor(new AssetLocation(args[0]), byPlayer));
-            actionRegistry.Add("spawnentities", (message, byPlayer, args) => spawnEntities(api, message, byPlayer, args));
-            actionRegistry.Add("spawnany", (message, byPlayer, args) => spawnEntities(api, message, byPlayer, args));
-            actionRegistry.Add("recruitentity", (message, byPlayer, args) => recruitEntity(api, message, byPlayer, args));
+            api.RegisterItemClass("ItemDebugTool", typeof(ItemDebugTool));
 
-            actionObjectiveRegistry.Add("plantflowers", new ActionObjectiveNearbyFlowers());
+            actionObjectiveRegistry.Add("plantflowers", new NearbyFlowersActionObjective());
+            actionObjectiveRegistry.Add("hasAttribute", new PlayerHasAttributeActionObjective());
         }
 
         public override void StartClientSide(ICoreClientAPI capi)
@@ -50,6 +47,16 @@ namespace VsQuest
                 .RegisterMessageType<QuestAcceptedMessage>().SetMessageHandler<QuestAcceptedMessage>((player, message) => OnQuestAccepted(player, message, sapi))
                 .RegisterMessageType<QuestCompletedMessage>().SetMessageHandler<QuestCompletedMessage>((player, message) => OnQuestCompleted(player, message, sapi))
                 .RegisterMessageType<QuestInfoMessage>();
+
+            actionRegistry.Add("despawnquestgiver", (message, byPlayer, args) => sapi.World.RegisterCallback(dt => sapi.World.GetEntityById(message.questGiverId).Die(EnumDespawnReason.Removed), int.Parse(args[0])));
+            actionRegistry.Add("playsound", (message, byPlayer, args) => sapi.World.PlaySoundFor(new AssetLocation(args[0]), byPlayer));
+            actionRegistry.Add("spawnentities", (message, byPlayer, args) => spawnEntities(sapi, message, byPlayer, args));
+            actionRegistry.Add("spawnany", (message, byPlayer, args) => spawnEntities(sapi, message, byPlayer, args));
+            actionRegistry.Add("recruitentity", (message, byPlayer, args) => recruitEntity(sapi, message, byPlayer, args));
+            actionRegistry.Add("addplayerattribute", (message, byPlayer, args) => byPlayer.Entity.WatchedAttributes.SetString(args[0], args[1]));
+            actionRegistry.Add("removeplayerattribute", (message, byPlayer, args) => byPlayer.Entity.WatchedAttributes.RemoveAttribute(args[0]));
+            actionRegistry.Add("completequest", (message, byPlayer, args) => OnQuestCompleted(byPlayer, new QuestCompletedMessage() { questGiverId = long.Parse(args[0]), questId = args[1] }, sapi));
+            actionRegistry.Add("acceptquest", (message, byPlayer, args) => OnQuestAccepted(byPlayer, new QuestAcceptedMessage() { questGiverId = long.Parse(args[0]), questId = args[1] }, sapi));
 
             sapi.Event.GameWorldSave += () => OnSave(sapi);
             sapi.Event.PlayerDisconnect += player => OnDisconnect(player, sapi);
