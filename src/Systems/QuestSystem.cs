@@ -57,6 +57,7 @@ namespace VsQuest
             actionRegistry.Add("removeplayerattribute", (message, byPlayer, args) => byPlayer.Entity.WatchedAttributes.RemoveAttribute(args[0]));
             actionRegistry.Add("completequest", (message, byPlayer, args) => OnQuestCompleted(byPlayer, new QuestCompletedMessage() { questGiverId = long.Parse(args[0]), questId = args[1] }, sapi));
             actionRegistry.Add("acceptquest", (message, byPlayer, args) => OnQuestAccepted(byPlayer, new QuestAcceptedMessage() { questGiverId = long.Parse(args[0]), questId = args[1] }, sapi));
+            actionRegistry.Add("giveitem", (message, byPlayer, args) => GiveItem(sapi, message, byPlayer, args));
 
             sapi.Event.GameWorldSave += () => OnSave(sapi);
             sapi.Event.PlayerDisconnect += player => OnDisconnect(player, sapi);
@@ -228,6 +229,20 @@ namespace VsQuest
             recruit.WatchedAttributes.SetString("guardedPlayerUid", byPlayer.PlayerUID);
             recruit.WatchedAttributes.SetBool("commandSit", false);
             recruit.WatchedAttributes.MarkPathDirty("guardedPlayerUid");
+        }
+
+        private void GiveItem(ICoreServerAPI sapi, QuestMessage message, IServerPlayer byPlayer, string[] args)
+        {
+            CollectibleObject item = sapi.World.GetItem(new AssetLocation(args[0]));
+            if (item == null)
+            {
+                item = sapi.World.GetBlock(new AssetLocation(args[0]));
+            }
+            var stack = new ItemStack(item, int.Parse(args[1]));
+            if (!byPlayer.InventoryManager.TryGiveItemstack(stack))
+            {
+                sapi.World.SpawnItemEntity(stack, byPlayer.Entity.ServerPos.XYZ);
+            }
         }
     }
 
