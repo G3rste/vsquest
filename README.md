@@ -27,6 +27,27 @@ Every quest in the quests.json can have the following attributes:
 * **actionRewards**: list of rewards that rely on custom code, like spawning a certain creature, ...
   * **id**: unique id of the action
   * **args**: arguments for the function called by the action, all supplied as strings
+  * **currently available actions (can be used both as actionRewards and onAcceptedActions)**:
+    * despawnquestgiver: despawns the questgiver after the given amount of time
+      * args: ["8"] => questgiver is despawned after 8 seconds
+    * playsound: plays the given sound at the players position (only hearable by the player himself)
+      * args: ["game:sounds/voice/saxophone"] => plays the saxophone sound
+    * spawnentities: spawns all entities provided
+      * args: ["game:wolf-male", "game:wolf-female"] => spawns a male and a female wolf
+    * spawnany: spawns a randome entity
+      * args: ["game:wolf-male", "game:wolf-female"] => spawns either a male or a female wolf
+    * recruitentity: recruits the questgiver (requires custom aitasks and is used by vsvillage)
+      * args: none
+    * addplayerattribute: adds an attribute as string to the watched attributes of the player, useful for storing custom data
+      * args: ["isacoolguy","yes"] => sets the isacoolguy attribute of the player to yes
+    * removeplayerattribute: remove a playerattribute
+      * args: ["isacoolguy"] => deletes the isacoolguy attribute
+    * completequest => completes the given quest
+      * args: ["25", "vsquestexample:talktome"] => completes the quest vsquestexample:talktome where the questgivers entity id is 25
+    * acceptquest: adds a quest to the active quests of the player
+      * args: ["25", "vsquestexample:talktome"] => adds vsquestexample:talktome with questgiver 25 to the active quests of the player
+    * giveitem: gives an item to the player
+      * args: ["game:gear-rusty", "1"] => gives 1 rusty gear to the player
 
 To convert an entity to a questgiver it needs the questgiver behavior:
 * **quests**: list of quests the questgiver offers
