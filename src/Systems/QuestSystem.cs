@@ -11,10 +11,11 @@ using Vintagestory.API.Util;
 
 namespace VsQuest
 {
+    public delegate void QuestAction(ICoreServerAPI sapi, QuestMessage message, IServerPlayer player, string[] args);
     public class QuestSystem : ModSystem
     {
         public Dictionary<string, Quest> questRegistry { get; private set; } = new Dictionary<string, Quest>();
-        public Dictionary<string, Action<QuestMessage, IServerPlayer, string[]>> actionRegistry { get; private set; } = new Dictionary<string, Action<QuestMessage, IServerPlayer, string[]>>();
+        public Dictionary<string, QuestAction> actionRegistry { get; private set; } = new Dictionary<string, QuestAction>();
         public Dictionary<string, ActiveActionObjective> actionObjectiveRegistry { get; private set; } = new Dictionary<string, ActiveActionObjective>();
         private ConcurrentDictionary<string, List<ActiveQuest>> playerQuests = new ConcurrentDictionary<string, List<ActiveQuest>>();
         public override void Start(ICoreAPI api)
@@ -48,16 +49,16 @@ namespace VsQuest
                 .RegisterMessageType<QuestCompletedMessage>().SetMessageHandler<QuestCompletedMessage>((player, message) => OnQuestCompleted(player, message, sapi))
                 .RegisterMessageType<QuestInfoMessage>();
 
-            actionRegistry.Add("despawnquestgiver", (message, byPlayer, args) => sapi.World.RegisterCallback(dt => sapi.World.GetEntityById(message.questGiverId).Die(EnumDespawnReason.Removed), int.Parse(args[0])));
-            actionRegistry.Add("playsound", (message, byPlayer, args) => sapi.World.PlaySoundFor(new AssetLocation(args[0]), byPlayer));
-            actionRegistry.Add("spawnentities", (message, byPlayer, args) => spawnEntities(sapi, message, byPlayer, args));
-            actionRegistry.Add("spawnany", (message, byPlayer, args) => spawnEntities(sapi, message, byPlayer, args));
-            actionRegistry.Add("recruitentity", (message, byPlayer, args) => recruitEntity(sapi, message, byPlayer, args));
-            actionRegistry.Add("addplayerattribute", (message, byPlayer, args) => byPlayer.Entity.WatchedAttributes.SetString(args[0], args[1]));
-            actionRegistry.Add("removeplayerattribute", (message, byPlayer, args) => byPlayer.Entity.WatchedAttributes.RemoveAttribute(args[0]));
-            actionRegistry.Add("completequest", (message, byPlayer, args) => OnQuestCompleted(byPlayer, new QuestCompletedMessage() { questGiverId = long.Parse(args[0]), questId = args[1] }, sapi));
-            actionRegistry.Add("acceptquest", (message, byPlayer, args) => OnQuestAccepted(byPlayer, new QuestAcceptedMessage() { questGiverId = long.Parse(args[0]), questId = args[1] }, sapi));
-            actionRegistry.Add("giveitem", (message, byPlayer, args) => GiveItem(sapi, message, byPlayer, args));
+            actionRegistry.Add("despawnquestgiver", (api, message, byPlayer, args) => api.World.RegisterCallback(dt => api.World.GetEntityById(message.questGiverId).Die(EnumDespawnReason.Removed), int.Parse(args[0])));
+            actionRegistry.Add("playsound", (api, message, byPlayer, args) => api.World.PlaySoundFor(new AssetLocation(args[0]), byPlayer));
+            actionRegistry.Add("spawnentities", ActionHandler.SpawnEntities);
+            actionRegistry.Add("spawnany", ActionHandler.SpawnAnyOfEntities);
+            actionRegistry.Add("recruitentity", ActionHandler.RecruitEntity);
+            actionRegistry.Add("addplayerattribute", (api, message, byPlayer, args) => byPlayer.Entity.WatchedAttributes.SetString(args[0], args[1]));
+            actionRegistry.Add("removeplayerattribute", (api, message, byPlayer, args) => byPlayer.Entity.WatchedAttributes.RemoveAttribute(args[0]));
+            actionRegistry.Add("completequest", (api, message, byPlayer, args) => OnQuestCompleted(byPlayer, new QuestCompletedMessage() { questGiverId = long.Parse(args[0]), questId = args[1] }, api));
+            actionRegistry.Add("acceptquest", (api, message, byPlayer, args) => OnQuestAccepted(byPlayer, new QuestAcceptedMessage() { questGiverId = long.Parse(args[0]), questId = args[1] }, api));
+            actionRegistry.Add("giveitem", ActionHandler.GiveItem);
 
             sapi.Event.GameWorldSave += () => OnSave(sapi);
             sapi.Event.PlayerDisconnect += player => OnDisconnect(player, sapi);
@@ -134,8 +135,15 @@ namespace VsQuest
             }
             foreach (var action in quest.onAcceptedActions)
             {
-                sapi.Logger.Error(action.id);
-                actionRegistry[action.id].Invoke(message, fromPlayer, action.args);
+                try
+                {
+                    actionRegistry[action.id].Invoke(sapi, message, fromPlayer, action.args);
+                }
+                catch (Exception ex)
+                {
+                    sapi.Logger.Error(string.Format("Action {0} caused an Error in Quest {1}. The Error had the following message: {2}\n Stacktrace:", action.id, quest.id, ex.Message, ex.StackTrace));
+                    sapi.SendMessage(fromPlayer, GlobalConstants.InfoLogChatGroup, string.Format("An error occurred during quest {0}, please check the server logs for more details.", quest.id), EnumChatType.Notification);
+                }
             }
             var activeQuest = new ActiveQuest()
             {
@@ -186,7 +194,15 @@ namespace VsQuest
             }
             foreach (var action in quest.actionRewards)
             {
-                actionRegistry[action.id].Invoke(message, fromPlayer, action.args);
+                try
+                {
+                    actionRegistry[action.id].Invoke(sapi, message, fromPlayer, action.args);
+                }
+                catch (Exception ex)
+                {
+                    sapi.Logger.Error(string.Format("Action {0} caused an Error in Quest {1}. The Error had the following message: {2}\n Stacktrace:", action.id, quest.id, ex.Message, ex.StackTrace));
+                    sapi.SendMessage(fromPlayer, GlobalConstants.InfoLogChatGroup, string.Format("An error occurred during quest {0}, please check the server logs for more details.", quest.id), EnumChatType.Notification);
+                }
             }
         }
 
@@ -202,47 +218,6 @@ namespace VsQuest
         private void OnQuestInfoMessage(QuestInfoMessage message, ICoreClientAPI capi)
         {
             new QuestSelectGui(capi, message.questGiverId, message.availableQestIds, message.activeQuests).TryOpen();
-        }
-
-        private void spawnEntities(ICoreAPI api, QuestMessage message, IPlayer byPlayer, string[] args)
-        {
-            foreach (var code in args)
-            {
-                var entity = api.World.ClassRegistry.CreateEntity(api.World.GetEntityType(new AssetLocation(code)));
-                entity.ServerPos = api.World.GetEntityById(message.questGiverId).ServerPos.Copy();
-                api.World.SpawnEntity(entity);
-            }
-        }
-
-        private void spawnAnyOfEntities(ICoreAPI api, QuestMessage message, IPlayer byPlayer, string[] args)
-        {
-            var code = args[api.World.Rand.Next(0, args.Length)];
-            var entity = api.World.ClassRegistry.CreateEntity(api.World.GetEntityType(new AssetLocation(code)));
-            entity.ServerPos = api.World.GetEntityById(message.questGiverId).ServerPos.Copy();
-            api.World.SpawnEntity(entity);
-        }
-
-        private void recruitEntity(ICoreAPI api, QuestMessage message, IPlayer byPlayer, string[] args)
-        {
-            var recruit = api.World.GetEntityById(message.questGiverId);
-            recruit.WatchedAttributes.SetDouble("employedSince", api.World.Calendar.TotalHours);
-            recruit.WatchedAttributes.SetString("guardedPlayerUid", byPlayer.PlayerUID);
-            recruit.WatchedAttributes.SetBool("commandSit", false);
-            recruit.WatchedAttributes.MarkPathDirty("guardedPlayerUid");
-        }
-
-        private void GiveItem(ICoreServerAPI sapi, QuestMessage message, IServerPlayer byPlayer, string[] args)
-        {
-            CollectibleObject item = sapi.World.GetItem(new AssetLocation(args[0]));
-            if (item == null)
-            {
-                item = sapi.World.GetBlock(new AssetLocation(args[0]));
-            }
-            var stack = new ItemStack(item, int.Parse(args[1]));
-            if (!byPlayer.InventoryManager.TryGiveItemstack(stack))
-            {
-                sapi.World.SpawnItemEntity(stack, byPlayer.Entity.ServerPos.XYZ);
-            }
         }
     }
 
