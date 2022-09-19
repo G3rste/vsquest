@@ -51,14 +51,14 @@ namespace VsQuest
 
             actionRegistry.Add("despawnquestgiver", (api, message, byPlayer, args) => api.World.RegisterCallback(dt => api.World.GetEntityById(message.questGiverId).Die(EnumDespawnReason.Removed), int.Parse(args[0])));
             actionRegistry.Add("playsound", (api, message, byPlayer, args) => api.World.PlaySoundFor(new AssetLocation(args[0]), byPlayer));
-            actionRegistry.Add("spawnentities", ActionHandler.SpawnEntities);
-            actionRegistry.Add("spawnany", ActionHandler.SpawnAnyOfEntities);
-            actionRegistry.Add("recruitentity", ActionHandler.RecruitEntity);
+            actionRegistry.Add("spawnentities", ActionUtil.SpawnEntities);
+            actionRegistry.Add("spawnany", ActionUtil.SpawnAnyOfEntities);
+            actionRegistry.Add("recruitentity", ActionUtil.RecruitEntity);
             actionRegistry.Add("addplayerattribute", (api, message, byPlayer, args) => byPlayer.Entity.WatchedAttributes.SetString(args[0], args[1]));
             actionRegistry.Add("removeplayerattribute", (api, message, byPlayer, args) => byPlayer.Entity.WatchedAttributes.RemoveAttribute(args[0]));
             actionRegistry.Add("completequest", (api, message, byPlayer, args) => OnQuestCompleted(byPlayer, new QuestCompletedMessage() { questGiverId = long.Parse(args[0]), questId = args[1] }, api));
             actionRegistry.Add("acceptquest", (api, message, byPlayer, args) => OnQuestAccepted(byPlayer, new QuestAcceptedMessage() { questGiverId = long.Parse(args[0]), questId = args[1] }, api));
-            actionRegistry.Add("giveitem", ActionHandler.GiveItem);
+            actionRegistry.Add("giveitem", ActionUtil.GiveItem);
 
             sapi.Event.GameWorldSave += () => OnSave(sapi);
             sapi.Event.PlayerDisconnect += player => OnDisconnect(player, sapi);

@@ -5,9 +5,9 @@ using Vintagestory.API.Server;
 
 namespace VsQuest
 {
-    public class ActionHandler
+    public class ActionUtil
     {
-        private ActionHandler()
+        private ActionUtil()
         {
         }
 
