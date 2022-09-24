@@ -153,7 +153,7 @@ namespace VsQuest
             };
             getPlayerQuests(fromPlayer.PlayerUID, sapi).Add(activeQuest);
             var questgiver = sapi.World.GetEntityById(message.questGiverId);
-            var key = quest.perPlayer ? String.Format("lastaccepted-{0}-{1}", quest.id, questgiver.EntityId) : String.Format("lastaccepted-{0}", quest.id);
+            var key = quest.perPlayer ? String.Format("lastaccepted-{0}-{1}", quest.id, fromPlayer.PlayerUID) : String.Format("lastaccepted-{0}", quest.id);
             questgiver.WatchedAttributes.SetDouble(key, sapi.World.Calendar.TotalDays);
             questgiver.WatchedAttributes.MarkPathDirty(key);
         }
