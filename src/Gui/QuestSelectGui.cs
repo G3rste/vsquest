@@ -48,8 +48,9 @@ namespace VsQuest
             SingleComposer = capi.Gui.CreateCompo("QuestSelectDialog-", dialogBounds)
                             .AddShadedDialogBG(bgBounds)
                             .AddDialogTitleBar(Lang.Get("vsquest:quest-select-title"), () => TryClose())
-                            .AddVerticalTabs(tabs, ElementBounds.Fixed(-200, 35, 200, 200), OnTabClicked)
+                            .AddVerticalTabs(tabs, ElementBounds.Fixed(-200, 35, 200, 200), OnTabClicked, "tabs")
                             .BeginChildElements(bgBounds);
+            SingleComposer.GetVerticalTab("tabs").activeElement = curTab;
             if (curTab == 0)
             {
                 if (availableQuestIds != null && availableQuestIds.Count > 0)
