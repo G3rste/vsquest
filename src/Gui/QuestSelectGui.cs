@@ -38,6 +38,11 @@ namespace VsQuest
         {
             ElementBounds dialogBounds = ElementStdBounds.AutosizedMainDialog.WithAlignment(EnumDialogArea.CenterMiddle);
             ElementBounds bgBounds = ElementBounds.Fill.WithFixedPadding(GuiStyle.ElementToDialogPadding);
+            ElementBounds questTextBounds = ElementBounds.Fixed(0, 60, 400, 500);
+            ElementBounds scrollbarBounds = questTextBounds.CopyOffsetedSibling(questTextBounds.fixedWidth + 10).WithFixedWidth(20).WithFixedHeight(questTextBounds.fixedHeight);
+            ElementBounds clippingBounds = questTextBounds.ForkBoundingParent();
+            ElementBounds bottomLeftButtonBounds = ElementBounds.Fixed(10, 570, 200, 20);
+            ElementBounds bottomRightButtonBounds = ElementBounds.Fixed(220, 570, 200, 20);
 
             GuiTab[] tabs = new GuiTab[] {
                 new GuiTab() { Name = Lang.Get("vsquest:tab-available-quests"), DataInt = 0 },
@@ -57,11 +62,12 @@ namespace VsQuest
                 {
                     selectedAvailableQuestId = availableQuestIds[0];
                     SingleComposer.AddDropDown(availableQuestIds.ToArray(), availableQuestIds.ConvertAll<string>(id => Lang.Get(id + "-title")).ToArray(), 0, onAvailableQuestSelectionChanged, ElementBounds.FixedOffseted(EnumDialogArea.RightTop, 0, 20, 400, 30))
-                        .AddButton(Lang.Get("vsquest:button-cancel"), TryClose, ElementBounds.FixedOffseted(EnumDialogArea.LeftBottom, 10, -10, 200, 20))
-                        .AddButton(Lang.Get("vsquest:button-accept"), acceptQuest, ElementBounds.FixedOffseted(EnumDialogArea.RightBottom, -10, -10, 200, 20))
-                        .BeginChildElements(ElementBounds.Fixed(40, 60, 400, 500))
-                            .AddRichtext(questText(availableQuestIds[0]), CairoFont.WhiteSmallishText(), ElementBounds.Fixed(0, 0, 400, 500), "questtext")
-                        .EndChildElements();
+                        .AddButton(Lang.Get("vsquest:button-cancel"), TryClose, bottomLeftButtonBounds)
+                        .AddButton(Lang.Get("vsquest:button-accept"), acceptQuest, bottomRightButtonBounds)
+                        .BeginClip(clippingBounds)
+                            .AddRichtext(questText(availableQuestIds[0]), CairoFont.WhiteSmallishText(), questTextBounds, "questtext")
+                        .EndClip()
+                        .AddVerticalScrollbar(OnNewScrollbarvalue, scrollbarBounds, "scrollbar");
                 }
                 else
                 {
@@ -75,22 +81,34 @@ namespace VsQuest
                 {
                     int selected = selectedActiveQuest == null ? 0 : activeQuests.FindIndex(match => match.questId == selectedActiveQuest.questId);
                     SingleComposer.AddDropDown(activeQuests.ConvertAll<string>(quest => quest.questId).ToArray(), activeQuests.ConvertAll<string>(quest => Lang.Get(quest.questId + "-title")).ToArray(), selected, onActiveQuestSelectionChanged, ElementBounds.FixedOffseted(EnumDialogArea.RightTop, 0, 20, 400, 30))
-                        .AddButton(Lang.Get("vsquest:button-cancel"), TryClose, ElementBounds.FixedOffseted(EnumDialogArea.LeftBottom, 10, -10, 200, 20))
+                        .AddButton(Lang.Get("vsquest:button-cancel"), TryClose, bottomLeftButtonBounds)
                         .AddIf(selectedActiveQuest.isCompletable(player))
-                            .AddButton(Lang.Get("vsquest:button-complete"), completeQuest, ElementBounds.FixedOffseted(EnumDialogArea.RightBottom, -10, -10, 200, 20))
+                            .AddButton(Lang.Get("vsquest:button-complete"), completeQuest, bottomRightButtonBounds)
                         .EndIf()
-                        .BeginChildElements(ElementBounds.Fixed(40, 60, 400, 500))
-                            .AddRichtext(activeQuestText(selectedActiveQuest), CairoFont.WhiteSmallishText(), ElementBounds.Fixed(0, 0, 400, 500), "questtext")
-                        .EndChildElements();
+                        .BeginClip(clippingBounds)
+                            .AddRichtext(activeQuestText(selectedActiveQuest), CairoFont.WhiteSmallishText(), questTextBounds, "questtext")
+                        .EndClip()
+                        .AddVerticalScrollbar(OnNewScrollbarvalue, scrollbarBounds, "scrollbar");
                 }
                 else
                 {
                     SingleComposer.AddStaticText(Lang.Get("vsquest:no-quest-active-desc"), CairoFont.WhiteSmallishText(), ElementBounds.Fixed(0, 60, 400, 500))
                         .AddButton(Lang.Get("vsquest:button-cancel"), TryClose, ElementBounds.FixedOffseted(EnumDialogArea.CenterBottom, 0, -10, 200, 20));
                 }
-            }
+            };
+            SingleComposer.GetScrollbar("scrollbar")?.SetHeights((float)questTextBounds.fixedHeight, (float)questTextBounds.fixedHeight);
             SingleComposer.EndChildElements()
                     .Compose();
+            SingleComposer.GetScrollbar("scrollbar")?.SetNewTotalHeight((float)SingleComposer.GetRichtext("questtext").TotalHeight);
+            SingleComposer.GetScrollbar("scrollbar")?.SetScrollbarPosition(0);
+        }
+
+        private void OnNewScrollbarvalue(float value)
+        {
+            var textArea = SingleComposer.GetRichtext("questtext");
+
+            textArea.Bounds.fixedY = - value;
+            textArea.Bounds.CalcWorldBounds();
         }
 
         private void OnTabClicked(int id, GuiTab tab)
@@ -146,6 +164,7 @@ namespace VsQuest
             {
                 selectedAvailableQuestId = questId;
                 SingleComposer.GetRichtext("questtext").SetNewText(questText(questId), CairoFont.WhiteSmallishText());
+                SingleComposer.GetScrollbar("scrollbar")?.SetNewTotalHeight((float)SingleComposer.GetRichtext("questtext").TotalHeight);
             }
         }
 
