@@ -24,6 +24,12 @@ Every quest in the quests.json can have the following attributes:
 * **itemRewards**: list of items the player receives upon completing the quest
   * **itemCode**: code of the reward
   * **amount**: amount the player receives
+* **randomItemRewards**: if you want to reward the player with a random reward (something like "select 3 out of 7 possible items") this is the place to go
+  * **selectAmount**: specifies how many of the item entries should be randomly selected
+  * **items**: list of items to randomize from
+    * **itemCode**: code of the reward
+    * **minAmount**: minimum amount of that item to drop
+    * **mayAmount**: maximum amount of that item to drop
 * **actionRewards**: list of rewards that rely on custom code, like spawning a certain creature, ...
   * **id**: unique id of the action
   * **args**: arguments for the function called by the action, all supplied as strings
