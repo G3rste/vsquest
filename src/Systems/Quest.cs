@@ -13,6 +13,7 @@ namespace VsQuest
         public List<Objective> killObjectives { get; set; } = new List<Objective>();
         public List<ActionWithArgs> actionObjectives { get; set; } = new List<ActionWithArgs>();
         public List<ItemReward> itemRewards { get; set; } = new List<ItemReward>();
+        public RandomItemReward randomItemRewards { get; set; } = new RandomItemReward();
         public List<ActionWithArgs> actionRewards { get; set; } = new List<ActionWithArgs>();
     }
 
@@ -32,5 +33,18 @@ namespace VsQuest
     {
         public string id { get; set; }
         public string[] args { get; set; }
+    }
+
+    public class RandomItemReward
+    {
+        public int selectAmount { get; set; }
+        public List<RandomItem> items { get; set; } = new List<RandomItem>();
+    }
+
+    public class RandomItem
+    {
+        public string itemCode { get; set; }
+        public int minAmount { get; set; }
+        public int maxAmount { get; set; }
     }
 }

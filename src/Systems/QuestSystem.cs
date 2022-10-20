@@ -192,6 +192,23 @@ namespace VsQuest
                     sapi.World.SpawnItemEntity(stack, questgiver.ServerPos.XYZ);
                 }
             }
+            List<RandomItem> randomItems = quest.randomItemRewards.items;
+            for (int i = 0; i < quest.randomItemRewards.selectAmount; i++)
+            {
+                if (randomItems.Count <= 0) break;
+                var randomItem = randomItems[sapi.World.Rand.Next(0, randomItems.Count)];
+                randomItems.Remove(randomItem);
+                CollectibleObject item = sapi.World.GetItem(new AssetLocation(randomItem.itemCode));
+                if (item == null)
+                {
+                    item = sapi.World.GetBlock(new AssetLocation(randomItem.itemCode));
+                }
+                var stack = new ItemStack(item, sapi.World.Rand.Next(randomItem.minAmount, randomItem.maxAmount + 1));
+                if (!fromPlayer.InventoryManager.TryGiveItemstack(stack))
+                {
+                    sapi.World.SpawnItemEntity(stack, questgiver.ServerPos.XYZ);
+                }
+            }
             foreach (var action in quest.actionRewards)
             {
                 try
