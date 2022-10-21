@@ -54,6 +54,7 @@ namespace VsQuest
             actionRegistry.Add("spawnentities", ActionUtil.SpawnEntities);
             actionRegistry.Add("spawnany", ActionUtil.SpawnAnyOfEntities);
             actionRegistry.Add("recruitentity", ActionUtil.RecruitEntity);
+            actionRegistry.Add("healplayer", (api, message, byPlayer, args) => byPlayer.Entity.ReceiveDamage(new DamageSource() { Type = EnumDamageType.Heal }, 100));
             actionRegistry.Add("addplayerattribute", (api, message, byPlayer, args) => byPlayer.Entity.WatchedAttributes.SetString(args[0], args[1]));
             actionRegistry.Add("removeplayerattribute", (api, message, byPlayer, args) => byPlayer.Entity.WatchedAttributes.RemoveAttribute(args[0]));
             actionRegistry.Add("completequest", (api, message, byPlayer, args) => OnQuestCompleted(byPlayer, new QuestCompletedMessage() { questGiverId = long.Parse(args[0]), questId = args[1] }, api));
