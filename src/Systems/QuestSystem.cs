@@ -64,6 +64,8 @@ namespace VsQuest
             sapi.Event.GameWorldSave += () => OnSave(sapi);
             sapi.Event.PlayerDisconnect += player => OnDisconnect(player, sapi);
             sapi.Event.OnEntityDeath += (entity, dmgSource) => OnEntityDeath(entity, dmgSource, sapi);
+            sapi.Event.DidBreakBlock += (byPlayer, blockId, blockSel) => getPlayerQuests(byPlayer?.PlayerUID, sapi).ForEach(quest => quest.OnBlockBroken(sapi.World.GetBlock(blockId)?.Code.Path));
+            sapi.Event.DidPlaceBlock += (byPlayer, oldBlockId, blockSel, itemstack) => getPlayerQuests(byPlayer?.PlayerUID, sapi).ForEach(quest => quest.OnBlockPlaced(itemstack.Collectible?.Code.Path));
         }
 
         public override void AssetsLoaded(ICoreAPI api)
@@ -123,15 +125,35 @@ namespace VsQuest
         private void OnQuestAccepted(IServerPlayer fromPlayer, QuestAcceptedMessage message, ICoreServerAPI sapi)
         {
             var quest = questRegistry[message.questId];
-            var killTrackers = new List<EntityKillTracker>();
-            foreach (var killObjective in quest.killObjectives)
+            var killTrackers = new List<EventTracker>();
+            foreach (var objective in quest.killObjectives)
             {
-                var tracker = new EntityKillTracker()
+                var tracker = new EventTracker()
                 {
-                    kills = 0,
-                    relevantEntityCodes = new HashSet<string>(killObjective.validCodes)
+                    count = 0,
+                    relevantCodes = new HashSet<string>(objective.validCodes)
                 };
                 killTrackers.Add(tracker);
+            }
+            var blockPlaceTrackers = new List<EventTracker>();
+            foreach (var objective in quest.blockPlaceObjectives)
+            {
+                var tracker = new EventTracker()
+                {
+                    count = 0,
+                    relevantCodes = new HashSet<string>(objective.validCodes)
+                };
+                blockPlaceTrackers.Add(tracker);
+            }
+            var blockBreakTrackers = new List<EventTracker>();
+            foreach (var objective in quest.blockBreakObjectives)
+            {
+                var tracker = new EventTracker()
+                {
+                    count = 0,
+                    relevantCodes = new HashSet<string>(objective.validCodes)
+                };
+                blockBreakTrackers.Add(tracker);
             }
             foreach (var action in quest.onAcceptedActions)
             {
@@ -149,7 +171,9 @@ namespace VsQuest
             {
                 questGiverId = message.questGiverId,
                 questId = message.questId,
-                killTrackers = killTrackers
+                killTrackers = killTrackers,
+                blockPlaceTrackers = blockPlaceTrackers,
+                blockBreakTrackers = blockBreakTrackers
             };
             getPlayerQuests(fromPlayer.PlayerUID, sapi).Add(activeQuest);
             var questgiver = sapi.World.GetEntityById(message.questGiverId);

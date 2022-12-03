@@ -18,5 +18,8 @@
     "talktootherguy-obj": "Talked to: {0}/1",
     "talktome-title": "Talk to me",
     "talktome-desc": "Hi thanks for checking in.",
-    "talktome-obj": ""
+    "talktome-obj": "",
+    "placeandbreak-title": "Place and Break",
+    "placeandbreak-desc": "Place 2 Beds and break 4 bony soil.",
+    "placeandbreak-obj": "Placed beds: {0}/2\nBroken bony soil: {1}/4"
 }

@@ -11,16 +11,49 @@ namespace VsQuest
     {
         public long questGiverId { get; set; }
         public string questId { get; set; }
-        public List<EntityKillTracker> killTrackers { get; set; } = new List<EntityKillTracker>();
+        public List<EventTracker> killTrackers { get; set; } = new List<EventTracker>();
+        public List<EventTracker> blockPlaceTrackers { get; set; } = new List<EventTracker>();
+        public List<EventTracker> blockBreakTrackers { get; set; } = new List<EventTracker>();
         public void OnEntityKilled(string entityCode)
         {
-            foreach (var tracker in killTrackers)
+            checkEventTrackers(killTrackers, entityCode);
+        }
+
+        public void OnBlockPlaced(string blockCode)
+        {
+            checkEventTrackers(blockPlaceTrackers, blockCode);
+        }
+
+        public void OnBlockBroken(string blockCode)
+        {
+            checkEventTrackers(blockBreakTrackers, blockCode);
+        }
+
+        private static void checkEventTrackers(List<EventTracker> trackers, string code)
+        {
+            foreach (var tracker in trackers)
             {
-                if (tracker.relevantEntityCodes.Contains(entityCode))
+                if (trackerMatches(tracker, code))
                 {
-                    tracker.kills++;
+                    tracker.count++;
                 }
             }
+        }
+
+        private static bool trackerMatches(EventTracker tracker, string code)
+        {
+            if (tracker.relevantCodes.Contains(code))
+            {
+                return true;
+            }
+            foreach (var candidate in tracker.relevantCodes)
+            {
+                if (candidate.EndsWith("*") && code.StartsWith(candidate.Remove(candidate.Length - 1)))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public bool isCompletable(IPlayer byPlayer)
@@ -29,9 +62,17 @@ namespace VsQuest
             var quest = questSystem.questRegistry[questId];
             var activeActionObjectives = quest.actionObjectives.ConvertAll<ActiveActionObjective>(objective => questSystem.actionObjectiveRegistry[objective.id]);
             bool completable = true;
+            for (int i = 0; i < quest.blockPlaceObjectives.Count; i++)
+            {
+                completable &= quest.blockPlaceObjectives[i].demand <= blockPlaceTrackers[i].count;
+            }
+            for (int i = 0; i < quest.blockBreakObjectives.Count; i++)
+            {
+                completable &= quest.blockBreakObjectives[i].demand <= blockBreakTrackers[i].count;
+            }
             for (int i = 0; i < quest.killObjectives.Count; i++)
             {
-                completable &= quest.killObjectives[i].demand <= killTrackers[i].kills;
+                completable &= quest.killObjectives[i].demand <= killTrackers[i].count;
             }
             foreach (var gatherObjective in quest.gatherObjectives)
             {
@@ -55,16 +96,17 @@ namespace VsQuest
             }
         }
 
-        public List<int> killProgress()
+        public List<int> trackerProgress()
         {
-            if (killTrackers != null)
+            var result = new List<int>();
+            foreach (var trackerList in new List<EventTracker>[] { killTrackers, blockPlaceTrackers, blockBreakTrackers })
             {
-                return killTrackers.ConvertAll<int>(tracker => tracker.kills);
+                if (trackerList != null)
+                {
+                    result.AddRange(trackerList.ConvertAll<int>(tracker => tracker.count));
+                }
             }
-            else
-            {
-                return new List<int>();
-            }
+            return result;
         }
 
         public List<int> gatherProgress(IPlayer byPlayer)
@@ -90,7 +132,7 @@ namespace VsQuest
         public List<int> progress(IPlayer byPlayer)
         {
             var progress = gatherProgress(byPlayer);
-            progress.AddRange(killProgress());
+            progress.AddRange(trackerProgress());
             progress.AddRange(actionProgress(byPlayer));
             return progress;
         }
@@ -138,9 +180,9 @@ namespace VsQuest
     }
 
     [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
-    public class EntityKillTracker
+    public class EventTracker
     {
-        public HashSet<string> relevantEntityCodes { get; set; } = new HashSet<string>();
-        public int kills { get; set; }
+        public HashSet<string> relevantCodes { get; set; } = new HashSet<string>();
+        public int count { get; set; }
     }
 }

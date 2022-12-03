@@ -148,5 +148,34 @@
                 ]
             }
         ]
+    },
+    {
+        "id": "vsquestexample:placeandbreak",
+        "cooldown": 20,
+        "perPlayer": true,
+        "blockPlaceObjectives": [
+            {
+                "validCodes": [
+                    "bed-wood-*",
+                    "bed-hay-*",
+                    "bed-woodaged-*"
+                ],
+                "demand": 2
+            }
+        ],
+        "blockBreakObjectives": [
+            {
+                "validCodes": [
+                    "bonysoil"
+                ],
+                "demand": 4
+            }
+        ],
+        "itemRewards": [
+            {
+                "itemCode": "game:gear-rusty",
+                "amount": 1
+            }
+        ]
     }
 ]

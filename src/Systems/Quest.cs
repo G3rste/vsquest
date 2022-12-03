@@ -11,6 +11,8 @@ namespace VsQuest
         public List<ActionWithArgs> onAcceptedActions { get; set; } = new List<ActionWithArgs>();
         public List<Objective> gatherObjectives { get; set; } = new List<Objective>();
         public List<Objective> killObjectives { get; set; } = new List<Objective>();
+        public List<Objective> blockPlaceObjectives { get; set; } = new List<Objective>();
+        public List<Objective> blockBreakObjectives { get; set; } = new List<Objective>();
         public List<ActionWithArgs> actionObjectives { get; set; } = new List<ActionWithArgs>();
         public List<ItemReward> itemRewards { get; set; } = new List<ItemReward>();
         public RandomItemReward randomItemRewards { get; set; } = new RandomItemReward();
