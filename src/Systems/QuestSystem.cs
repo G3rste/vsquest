@@ -122,7 +122,6 @@ namespace VsQuest
 
         private void OnQuestAccepted(IServerPlayer fromPlayer, QuestAcceptedMessage message, ICoreServerAPI sapi)
         {
-            sapi.Logger.Error(message.questId);
             var quest = questRegistry[message.questId];
             var killTrackers = new List<EntityKillTracker>();
             foreach (var killObjective in quest.killObjectives)
