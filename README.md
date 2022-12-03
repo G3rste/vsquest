@@ -21,6 +21,12 @@ Every quest in the quests.json can have the following attributes:
 * **killObjectives**: list of entities the player has to defeat
   * **validCodes**: list of accepted entity codes
   * **demand**: needed amount
+* **blockPlaceObjectives**: list of blocks the player has place
+  * **validCodes**: list of accepted block codes
+  * **demand**: needed amount
+* **blockBreakObjectives**: list of blocks the player has break
+  * **validCodes**: list of accepted block codes
+  * **demand**: needed amount
 * **itemRewards**: list of items the player receives upon completing the quest
   * **itemCode**: code of the reward
   * **amount**: amount the player receives
