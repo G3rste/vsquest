@@ -7,7 +7,7 @@
         "G3rste & Zwetsche"
     ],
     "description": "Mod that focuses on implementing a Quest System.",
-    "version": "0.3.1",
+    "version": "0.3.2",
     "dependencies": {
         "game": "1.17.0"
     }
