@@ -119,7 +119,15 @@ namespace VsQuest
         }
         private List<ActiveQuest> loadPlayerQuests(ICoreServerAPI sapi, string playerUID)
         {
-            return sapi.WorldManager.SaveGame.GetData<List<ActiveQuest>>(String.Format("quests-{0}", playerUID), new List<ActiveQuest>());
+            try
+            {
+                return sapi.WorldManager.SaveGame.GetData<List<ActiveQuest>>(String.Format("quests-{0}", playerUID), new List<ActiveQuest>());
+            }
+            catch (ProtoException)
+            {
+                sapi.Logger.Error("Could not load quests for player with id {0}, corrupted quests will be deleted.");
+                return new List<ActiveQuest>();
+            }
         }
 
         private void OnQuestAccepted(IServerPlayer fromPlayer, QuestAcceptedMessage message, ICoreServerAPI sapi)

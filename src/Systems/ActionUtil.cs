@@ -58,7 +58,7 @@ namespace VsQuest
             }
             if (item == null)
             {
-                throw new QuestException(string.Format("Could not find item {0} for quest {1} but could not find the entity type!", code, message.questId));
+                throw new QuestException(string.Format("Could not find item {0} for quest {1}!", code, message.questId));
             }
 
             var stack = new ItemStack(item, int.Parse(args[1]));
