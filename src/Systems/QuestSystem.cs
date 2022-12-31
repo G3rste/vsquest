@@ -125,7 +125,7 @@ namespace VsQuest
             }
             catch (ProtoException)
             {
-                sapi.Logger.Error("Could not load quests for player with id {0}, corrupted quests will be deleted.");
+                sapi.Logger.Error("Could not load quests for player with id {0}, corrupted quests will be deleted.", playerUID);
                 return new List<ActiveQuest>();
             }
         }
