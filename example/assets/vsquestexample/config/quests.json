@@ -93,8 +93,8 @@
             {
                 "id": "acceptquest",
                 "args": [
-                    "3",
-                    "vsquestexample:talktome"
+                    "vsquestexample:talktome",
+                    "3"
                 ]
             }
         ],
@@ -176,8 +176,29 @@
                 "itemCode": "game:gear-rusty",
                 "amount": 1
             }
+        ]
+    },
+    {
+        "id": "vsquestexample:vanish",
+        "cooldown": -1,
+        "perPlayer": true,
+        "onAcceptedActions": [
+            {
+                "id": "completequest",
+                "args": []
+            }
         ],
         "actionRewards": [
+            {
+                "id": "spawnsmoke",
+                "args": []
+            },
+            {
+                "id": "despawnquestgiver",
+                "args": [
+                    "0"
+                ]
+            },
             {
                 "id": "spawnentities",
                 "args": [

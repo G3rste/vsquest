@@ -55,11 +55,13 @@ Every quest in the quests.json can have the following attributes:
     * removeplayerattribute: remove a playerattribute
       * args: ["isacoolguy"] => deletes the isacoolguy attribute
     * completequest => completes the given quest
-      * args: ["25", "vsquestexample:talktome"] => completes the quest vsquestexample:talktome where the questgivers entity id is 25
+      * args: ["vsquestexample:talktome", "25"] => completes the quest vsquestexample:talktome where the questgivers entity id is 25
     * acceptquest: adds a quest to the active quests of the player
-      * args: ["25", "vsquestexample:talktome"] => adds vsquestexample:talktome with questgiver 25 to the active quests of the player
+      * args: ["vsquestexample:talktome", "25"] => adds vsquestexample:talktome with questgiver 25 to the active quests of the player
     * giveitem: gives an item to the player
       * args: ["game:gear-rusty", "1"] => gives 1 rusty gear to the player
+    * spawnsmoke: spawns smoke particles at the questgivers location
+      * args: [] => none
 
 To convert an entity to a questgiver it needs the questgiver behavior:
 * **quests**: list of quests the questgiver offers

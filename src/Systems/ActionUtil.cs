@@ -1,6 +1,6 @@
 using System;
 using Vintagestory.API.Common;
-using Vintagestory.API.Config;
+using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 
 namespace VsQuest
@@ -65,6 +65,48 @@ namespace VsQuest
             if (!byPlayer.InventoryManager.TryGiveItemstack(stack))
             {
                 sapi.World.SpawnItemEntity(stack, byPlayer.Entity.ServerPos.XYZ);
+            }
+        }
+
+        public static void CompleteQuest(ICoreServerAPI sapi, QuestMessage message, IServerPlayer byPlayer, string[] args)
+        {
+            var questSystem = sapi.ModLoader.GetModSystem<QuestSystem>();
+            QuestCompletedMessage questCompletedMessage;
+            switch (args.Length)
+            {
+                case 1:
+                    questCompletedMessage = new QuestCompletedMessage() { questGiverId = long.Parse(args[1]), questId = args[0] };
+                    break;
+                case 2:
+                    questCompletedMessage = new QuestCompletedMessage() { questGiverId = message.questGiverId, questId = args[0] };
+                    break;
+                default:
+                    questCompletedMessage = new QuestCompletedMessage() { questGiverId = message.questGiverId, questId = message.questId };
+                    break;
+            }
+            questSystem.OnQuestCompleted(byPlayer, questCompletedMessage, sapi);
+        }
+
+        public static void SpawnSmoke(ICoreServerAPI sapi, QuestMessage message, IServerPlayer byPlayer, string[] args)
+        {
+            SimpleParticleProperties smoke = new SimpleParticleProperties(
+                    40, 60,
+                    ColorUtil.ToRgba(80, 100, 100, 100),
+                    new Vec3d(),
+                    new Vec3d(2, 1, 2),
+                    new Vec3f(-0.25f, 0f, -0.25f),
+                    new Vec3f(0.25f, 0f, 0.25f),
+                    0.6f,
+                    -0.075f,
+                    0.5f,
+                    3f,
+                    EnumParticleModel.Quad
+                );
+            var questgiver = sapi.World.GetEntityById(message.questGiverId);
+            if (questgiver != null)
+            {
+                smoke.MinPos = questgiver.ServerPos.XYZ.AddCopy(-1.5, -0.5, -1.5);
+                sapi.World.SpawnParticles(smoke);
             }
         }
     }

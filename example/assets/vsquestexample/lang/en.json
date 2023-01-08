@@ -21,5 +21,8 @@
     "talktome-obj": "",
     "placeandbreak-title": "Place and Break",
     "placeandbreak-desc": "Place 2 Beds and break 4 bony soil.",
-    "placeandbreak-obj": "Placed beds: {0}/2\nBroken bony soil: {1}/4"
+    "placeandbreak-obj": "Placed beds: {0}/2\nBroken bony soil: {1}/4",
+    "vsquestexample:vanish-title": "Vanishing Questgiver",
+    "vsquestexample:vanish-desc": "Me does a vanish!",
+    "vsquestexample:vanish-obj": "Poof"
 }

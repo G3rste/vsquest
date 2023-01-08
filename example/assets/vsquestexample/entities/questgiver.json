@@ -154,7 +154,8 @@
 					"vsquestexample:kill1deepdrifter",
 					"vsquest:quest-freeghost",
 					"vsquestexample:talktootherguy",
-					"vsquestexample:placeandbreak"
+					"vsquestexample:placeandbreak",
+					"vsquestexample:vanish"
 				],
 				"selectrandom": true,
 				"selectrandomcount": 4

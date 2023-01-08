@@ -53,11 +53,12 @@ namespace VsQuest
             actionRegistry.Add("playsound", (api, message, byPlayer, args) => api.World.PlaySoundFor(new AssetLocation(args[0]), byPlayer));
             actionRegistry.Add("spawnentities", ActionUtil.SpawnEntities);
             actionRegistry.Add("spawnany", ActionUtil.SpawnAnyOfEntities);
+            actionRegistry.Add("spawnsmoke", ActionUtil.SpawnSmoke);
             actionRegistry.Add("recruitentity", ActionUtil.RecruitEntity);
             actionRegistry.Add("healplayer", (api, message, byPlayer, args) => byPlayer.Entity.ReceiveDamage(new DamageSource() { Type = EnumDamageType.Heal }, 100));
             actionRegistry.Add("addplayerattribute", (api, message, byPlayer, args) => byPlayer.Entity.WatchedAttributes.SetString(args[0], args[1]));
             actionRegistry.Add("removeplayerattribute", (api, message, byPlayer, args) => byPlayer.Entity.WatchedAttributes.RemoveAttribute(args[0]));
-            actionRegistry.Add("completequest", (api, message, byPlayer, args) => OnQuestCompleted(byPlayer, new QuestCompletedMessage() { questGiverId = long.Parse(args[0]), questId = args[1] }, api));
+            actionRegistry.Add("completequest", ActionUtil.CompleteQuest);
             actionRegistry.Add("acceptquest", (api, message, byPlayer, args) => OnQuestAccepted(byPlayer, new QuestAcceptedMessage() { questGiverId = long.Parse(args[0]), questId = args[1] }, api));
             actionRegistry.Add("giveitem", ActionUtil.GiveItem);
 
@@ -163,18 +164,6 @@ namespace VsQuest
                 };
                 blockBreakTrackers.Add(tracker);
             }
-            foreach (var action in quest.onAcceptedActions)
-            {
-                try
-                {
-                    actionRegistry[action.id].Invoke(sapi, message, fromPlayer, action.args);
-                }
-                catch (Exception ex)
-                {
-                    sapi.Logger.Error(string.Format("Action {0} caused an Error in Quest {1}. The Error had the following message: {2}\n Stacktrace:", action.id, quest.id, ex.Message, ex.StackTrace));
-                    sapi.SendMessage(fromPlayer, GlobalConstants.InfoLogChatGroup, string.Format("An error occurred during quest {0}, please check the server logs for more details.", quest.id), EnumChatType.Notification);
-                }
-            }
             var activeQuest = new ActiveQuest()
             {
                 questGiverId = message.questGiverId,
@@ -188,9 +177,21 @@ namespace VsQuest
             var key = quest.perPlayer ? String.Format("lastaccepted-{0}-{1}", quest.id, fromPlayer.PlayerUID) : String.Format("lastaccepted-{0}", quest.id);
             questgiver.WatchedAttributes.SetDouble(key, sapi.World.Calendar.TotalDays);
             questgiver.WatchedAttributes.MarkPathDirty(key);
+            foreach (var action in quest.onAcceptedActions)
+            {
+                try
+                {
+                    actionRegistry[action.id].Invoke(sapi, message, fromPlayer, action.args);
+                }
+                catch (Exception ex)
+                {
+                    sapi.Logger.Error(string.Format("Action {0} caused an Error in Quest {1}. The Error had the following message: {2}\n Stacktrace:", action.id, quest.id, ex.Message, ex.StackTrace));
+                    sapi.SendMessage(fromPlayer, GlobalConstants.InfoLogChatGroup, string.Format("An error occurred during quest {0}, please check the server logs for more details.", quest.id), EnumChatType.Notification);
+                }
+            }
         }
 
-        private void OnQuestCompleted(IServerPlayer fromPlayer, QuestCompletedMessage message, ICoreServerAPI sapi)
+        public void OnQuestCompleted(IServerPlayer fromPlayer, QuestCompletedMessage message, ICoreServerAPI sapi)
         {
             var playerQuests = getPlayerQuests(fromPlayer.PlayerUID, sapi);
             var activeQuest = playerQuests.Find(item => item.questId == message.questId && item.questGiverId == message.questGiverId);

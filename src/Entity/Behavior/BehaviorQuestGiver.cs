@@ -5,7 +5,6 @@ using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
-using System.Security.Cryptography;
 using Vintagestory.API.Client;
 
 namespace VsQuest
@@ -35,7 +34,7 @@ namespace VsQuest
                 var resultList = new List<string>();
                 for (int i = 0; i < Math.Min(selectRandomCount, quests.Length); i++)
                 {
-                    seed = (seed * 7 + 7) % questList.Count;
+                    seed = (seed * 5 + 7) % questList.Count;
                     resultList.Add(questList[seed]);
                     questList.RemoveAt(seed);
                 }
