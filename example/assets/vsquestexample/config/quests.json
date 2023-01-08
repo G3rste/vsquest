@@ -176,6 +176,19 @@
                 "itemCode": "game:gear-rusty",
                 "amount": 1
             }
+        ],
+        "actionRewards": [
+            {
+                "id": "spawnentities",
+                "args": [
+                    "game:butterfly-commonbrimstone",
+                    "game:butterfly-comma",
+                    "game:butterfly-largewhite",
+                    "game:butterfly-peacock",
+                    "game:butterfly-smallheath",
+                    "game:butterfly-bluepansy"
+                ]
+            }
         ]
     }
 ]
