@@ -30,12 +30,12 @@ namespace VsQuest
             // simple randomizer that will always select the same quests for each entityId
             if (selectRandom)
             {
-                int seed = (int)entity.EntityId;
+                int seed = unchecked((int)entity.EntityId);
                 var questList = new List<string>(quests);
                 var resultList = new List<string>();
                 for (int i = 0; i < Math.Min(selectRandomCount, quests.Length); i++)
                 {
-                    seed = (seed * 19 + 19) % questList.Count;
+                    seed = (seed * 7 + 7) % questList.Count;
                     resultList.Add(questList[seed]);
                     questList.RemoveAt(seed);
                 }
