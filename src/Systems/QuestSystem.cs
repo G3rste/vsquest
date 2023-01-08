@@ -139,7 +139,7 @@ namespace VsQuest
                 var tracker = new EventTracker()
                 {
                     count = 0,
-                    relevantCodes = new HashSet<string>(objective.validCodes)
+                    relevantCodes = new List<string>(objective.validCodes)
                 };
                 killTrackers.Add(tracker);
             }
@@ -149,7 +149,7 @@ namespace VsQuest
                 var tracker = new EventTracker()
                 {
                     count = 0,
-                    relevantCodes = new HashSet<string>(objective.validCodes)
+                    relevantCodes = new List<string>(objective.validCodes)
                 };
                 blockPlaceTrackers.Add(tracker);
             }
@@ -159,7 +159,7 @@ namespace VsQuest
                 var tracker = new EventTracker()
                 {
                     count = 0,
-                    relevantCodes = new HashSet<string>(objective.validCodes)
+                    relevantCodes = new List<string>(objective.validCodes)
                 };
                 blockBreakTrackers.Add(tracker);
             }

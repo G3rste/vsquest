@@ -35,7 +35,7 @@ Every quest in the quests.json can have the following attributes:
   * **items**: list of items to randomize from
     * **itemCode**: code of the reward
     * **minAmount**: minimum amount of that item to drop
-    * **mayAmount**: maximum amount of that item to drop
+    * **maxAmount**: maximum amount of that item to drop
 * **actionRewards**: list of rewards that rely on custom code, like spawning a certain creature, ...
   * **id**: unique id of the action
   * **args**: arguments for the function called by the action, all supplied as strings
@@ -46,7 +46,7 @@ Every quest in the quests.json can have the following attributes:
       * args: ["game:sounds/voice/saxophone"] => plays the saxophone sound
     * spawnentities: spawns all entities provided
       * args: ["game:wolf-male", "game:wolf-female"] => spawns a male and a female wolf
-    * spawnany: spawns a randome entity
+    * spawnany: spawns a random entity
       * args: ["game:wolf-male", "game:wolf-female"] => spawns either a male or a female wolf
     * recruitentity: recruits the questgiver (requires custom aitasks and is used by vsvillage)
       * args: none

@@ -42,13 +42,9 @@ namespace VsQuest
 
         private static bool trackerMatches(EventTracker tracker, string code)
         {
-            if (tracker.relevantCodes.Contains(code))
-            {
-                return true;
-            }
             foreach (var candidate in tracker.relevantCodes)
             {
-                if (candidate.EndsWith("*") && code.StartsWith(candidate.Remove(candidate.Length - 1)))
+                if (candidate == code || candidate.EndsWith("*") && code.StartsWith(candidate.Remove(candidate.Length - 1)))
                 {
                     return true;
                 }
@@ -140,20 +136,37 @@ namespace VsQuest
         public int itemsGathered(IPlayer byPlayer, Objective gatherObjective)
         {
             int itemsFound = 0;
-
-            byPlayer.Entity.WalkInventory((slot) =>
+            foreach (var inventory in byPlayer.InventoryManager.Inventories.Values)
             {
-                if (slot is ItemSlotCreative || !(slot.Inventory is InventoryBasePlayer)) return true;
-
-                if (gatherObjective.validCodes.Contains(slot?.Itemstack?.Collectible?.Code?.Path))
+                if (inventory.ClassName == GlobalConstants.creativeInvClassName)
                 {
-                    itemsFound += slot.Itemstack.StackSize;
+                    continue;
                 }
-
-                return true;
-            });
+                foreach (var slot in inventory)
+                {
+                    if (gatherObjectiveMatches(slot, gatherObjective))
+                    {
+                        itemsFound += slot.Itemstack.StackSize;
+                    }
+                }
+            };
 
             return itemsFound;
+        }
+
+        private bool gatherObjectiveMatches(ItemSlot slot, Objective gatherObjective)
+        {
+            if (slot.Empty) return false;
+
+            var code = slot.Itemstack.Collectible.Code.Path;
+            foreach (var candidate in gatherObjective.validCodes)
+            {
+                if (candidate == code || candidate.EndsWith("*") && code.StartsWith(candidate.Remove(candidate.Length - 1)))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public void handOverItems(IPlayer byPlayer, Objective gatherObjective)
@@ -167,7 +180,7 @@ namespace VsQuest
                 }
                 foreach (var slot in inventory)
                 {
-                    if (gatherObjective.validCodes.Contains(slot?.Itemstack?.Collectible?.Code?.Path))
+                    if (gatherObjectiveMatches(slot, gatherObjective))
                     {
                         var stack = slot.TakeOut(Math.Min(slot.Itemstack.StackSize, gatherObjective.demand - itemsFound));
                         slot.MarkDirty();
@@ -182,7 +195,7 @@ namespace VsQuest
     [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
     public class EventTracker
     {
-        public HashSet<string> relevantCodes { get; set; } = new HashSet<string>();
+        public List<string> relevantCodes { get; set; } = new List<string>();
         public int count { get; set; }
     }
 }
