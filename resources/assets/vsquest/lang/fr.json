@@ -1,0 +1,15 @@
+{
+    "quest-select-title": "Offres de quêtes",
+    "tab-available-quests": "Quêtes disponibles",
+    "tab-active-quests": "Quêtes en cours",
+    "button-cancel": "Annuler",
+    "button-accept": "accepter",
+    "button-complete": "Complète",
+    "no-quest-available-desc": "Je n'ai actuellement pas besoin de votre aide pour quoi que ce soit.",
+    "no-quest-active-desc": "Je ne me souviens pas avoir eu de contrats avec vous.",
+    "access-quests": "parler à",
+    
+    "quest-freeghost-title": "Je veux me reposer dans un endroit plus agréable.",
+    "quest-freeghost-desc": "Cet endroit a l'air un peu triste, pouvez-vous planter des fleurs pour le rendre plus joli?",
+    "quest-freeghost-obj": "Fleurs plantées: {0}/8"
+}
