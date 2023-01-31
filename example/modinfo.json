@@ -7,9 +7,9 @@
         "G3rste"
     ],
     "description": "Example for using the vsquest api.",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "dependencies": {
         "game": "1.17.0",
-        "vsquest": "0.3.0"
+        "vsquest": "0.4.0"
     }
 }
