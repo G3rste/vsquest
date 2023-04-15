@@ -1,0 +1,15 @@
+{
+    "quest-select-title": "クエストの内容",
+    "tab-available-quests": "受注可能なクエスト",
+    "tab-active-quests": "受注中のクエスト",
+    "button-cancel": "キャンセル",
+    "button-accept": "受ける",
+    "button-complete": "完了！",
+    "no-quest-available-desc": "今のところ、困った事はないよ。",
+    "no-quest-active-desc": "未契約のままだったっけ？",
+    "access-quests": "話す",
+    
+    "quest-freeghost-title": "もっと素敵な場所で休みたい。",
+    "quest-freeghost-desc": "この場所はなんだか寂しい感じなので、花を植えてもっと素敵になりませんか？",
+    "quest-freeghost-obj": "植栽された花: {0}/8"
+}
