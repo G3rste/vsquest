@@ -1,4 +1,8 @@
 {
+    "comment_description": "Japanese localization file for 'VS Quest'.",
+    "comment_version": "Mod Version: v0.4.1",
+    "comment_author": "Translated By: Macoto Hino",
+    "comment_technical_details": "Machine translation using PCOT and DeepL.",
     "quest-select-title": "クエストの内容",
     "tab-available-quests": "受注可能なクエスト",
     "tab-active-quests": "受注中のクエスト",
