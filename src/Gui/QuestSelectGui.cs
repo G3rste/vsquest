@@ -55,7 +55,7 @@ namespace VsQuest
                             .AddDialogTitleBar(Lang.Get("vsquest:quest-select-title"), () => TryClose())
                             .AddVerticalTabs(tabs, ElementBounds.Fixed(-200, 35, 200, 200), OnTabClicked, "tabs")
                             .BeginChildElements(bgBounds);
-            SingleComposer.GetVerticalTab("tabs").activeElement = curTab;
+            SingleComposer.GetVerticalTab("tabs").ActiveElement = curTab;
             if (curTab == 0)
             {
                 if (availableQuestIds != null && availableQuestIds.Count > 0)

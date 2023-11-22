@@ -15,7 +15,7 @@ namespace VsQuest
                 {
                     for (int z = pos.Z - 100; z <= pos.Z + 100; z += chunksize)
                     {
-                        var chunk = blockAccessor.GetChunkAtBlockPos(x, y, z);
+                        var chunk = blockAccessor.GetChunkAtBlockPos(new BlockPos(x, y, z, 0));
                         if (chunk == null) { continue; }
                         foreach (var blockEntity in chunk.BlockEntities.Values)
                         {
