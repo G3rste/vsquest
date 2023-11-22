@@ -3,13 +3,12 @@
     "tab-available-quests": "Quêtes disponibles",
     "tab-active-quests": "Quêtes en cours",
     "button-cancel": "Annuler",
-    "button-accept": "accepter",
-    "button-complete": "Complète",
-    "no-quest-available-desc": "Je n'ai actuellement pas besoin de votre aide pour quoi que ce soit.",
-    "no-quest-active-desc": "Je ne me souviens pas avoir eu de contrats avec vous.",
-    "access-quests": "parler à",
-    
-    "quest-freeghost-title": "Je veux me reposer dans un endroit plus agréable.",
-    "quest-freeghost-desc": "Cet endroit a l'air un peu triste, pouvez-vous planter des fleurs pour le rendre plus joli?",
-    "quest-freeghost-obj": "Fleurs plantées: {0}/8"
+    "button-accept": "Accepter",
+    "button-complete": "Terminer",
+    "no-quest-available-desc": "Je n'ai pas besoin de votre aide pour l'instant.",
+    "no-quest-active-desc": "Je ne me souviens pas avoir de contrat ouvert avec vous.",
+    "access-quests": "Parler à",
+    "quest-freeghost-title": "Je veux reposer dans un endroit plus agréable",
+    "quest-freeghost-desc": "Cet endroit a l'air triste, pourriez-vous planter des fleurs pour le rendre plus agréable ?",
+    "quest-freeghost-obj": "Fleurs plantées : {0}/8"
 }
