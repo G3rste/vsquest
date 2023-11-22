@@ -4,7 +4,8 @@
     "name": "VS Quest",
     "side": "universal",
     "authors": [
-        "G3rste & Zwetsche"
+        "G3rste",
+        "Zwetsche"
     ],
     "description": "Mod that focuses on implementing a Quest System.",
     "version": "0.5.0",
