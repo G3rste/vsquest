@@ -61,6 +61,8 @@ namespace VsQuest
             actionRegistry.Add("completequest", ActionUtil.CompleteQuest);
             actionRegistry.Add("acceptquest", (api, message, byPlayer, args) => OnQuestAccepted(byPlayer, new QuestAcceptedMessage() { questGiverId = long.Parse(args[0]), questId = args[1] }, api));
             actionRegistry.Add("giveitem", ActionUtil.GiveItem);
+            actionRegistry.Add("addtraits", ActionUtil.AddTraits);
+            actionRegistry.Add("removetraits", ActionUtil.RemoveTraits);
 
             sapi.Event.GameWorldSave += () => OnSave(sapi);
             sapi.Event.PlayerDisconnect += player => OnDisconnect(player, sapi);

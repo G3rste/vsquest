@@ -1,7 +1,9 @@
 using System;
+using System.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
+using Vintagestory.API.Util;
 
 namespace VsQuest
 {
@@ -108,6 +110,24 @@ namespace VsQuest
                 smoke.MinPos = questgiver.ServerPos.XYZ.AddCopy(-1.5, -0.5, -1.5);
                 sapi.World.SpawnParticles(smoke);
             }
+        }
+        public static void AddTraits(ICoreServerAPI sapi, QuestMessage message, IServerPlayer byPlayer, string[] args)
+        {
+            var traits = byPlayer.Entity.WatchedAttributes
+                .GetStringArray("extraTraits", new string[0])
+                .ToHashSet();
+            traits.AddRange(args);
+            byPlayer.Entity.WatchedAttributes
+                .SetStringArray("extraTraits", traits.ToArray());
+        }
+        public static void RemoveTraits(ICoreServerAPI sapi, QuestMessage message, IServerPlayer byPlayer, string[] args)
+        {
+            var traits = byPlayer.Entity.WatchedAttributes
+                .GetStringArray("extraTraits", new string[0])
+                .ToHashSet();
+            args.Foreach(trait => traits.Remove(trait));
+            byPlayer.Entity.WatchedAttributes
+                .SetStringArray("extraTraits", traits.ToArray());
         }
     }
 

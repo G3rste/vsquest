@@ -62,6 +62,10 @@ Every quest in the quests.json can have the following attributes:
       * args: ["game:gear-rusty", "1"] => gives 1 rusty gear to the player
     * spawnsmoke: spawns smoke particles at the questgivers location
       * args: [] => none
+    * addtraits: adds the given list of traits to the player
+      * args: ["bowyer", "precise"] => adds the precise and the bowyer trait to the player
+    * removetraits: removes the given list of traits from the player, but can not remove traits that are linked to the players class (eg. can not remove bowyer from hunter)
+      * args: ["bowyer", "precise"] => removes the precise and the bowyer trait from the player
 
 To convert an entity to a questgiver it needs the questgiver behavior:
 * **quests**: list of quests the questgiver offers
