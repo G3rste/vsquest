@@ -52,7 +52,7 @@ namespace VsQuest
                 var availableQuestIds = new List<string>();
                 foreach (var questId in quests)
                 {
-                    var quest = questSystem.questRegistry[questId];
+                    var quest = questSystem.QuestRegistry[questId];
                     var key = quest.perPlayer ? String.Format("lastaccepted-{0}-{1}", questId, (byEntity as EntityPlayer)?.PlayerUID) : String.Format("lastaccepted-{0}", questId);
                     if (entity.WatchedAttributes.GetDouble(key, -quest.cooldown) + quest.cooldown < sapi.World.Calendar.TotalDays
                             && activeQuests.Find(activeQuest => activeQuest.questId == questId && activeQuest.questGiverId == entity.EntityId) == null

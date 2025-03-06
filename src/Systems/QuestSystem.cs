@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using ProtoBuf;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -14,10 +15,11 @@ namespace VsQuest
     public delegate void QuestAction(ICoreServerAPI sapi, QuestMessage message, IServerPlayer player, string[] args);
     public class QuestSystem : ModSystem
     {
-        public Dictionary<string, Quest> questRegistry { get; private set; } = new Dictionary<string, Quest>();
-        public Dictionary<string, QuestAction> actionRegistry { get; private set; } = new Dictionary<string, QuestAction>();
-        public Dictionary<string, ActiveActionObjective> actionObjectiveRegistry { get; private set; } = new Dictionary<string, ActiveActionObjective>();
+        public Dictionary<string, Quest> QuestRegistry { get; private set; } = new Dictionary<string, Quest>();
+        public Dictionary<string, QuestAction> ActionRegistry { get; private set; } = new Dictionary<string, QuestAction>();
+        public Dictionary<string, ActiveActionObjective> ActionObjectiveRegistry { get; private set; } = new Dictionary<string, ActiveActionObjective>();
         private ConcurrentDictionary<string, List<ActiveQuest>> playerQuests = new ConcurrentDictionary<string, List<ActiveQuest>>();
+        public QuestConfig Config { get; set; }
         public override void Start(ICoreAPI api)
         {
             base.Start(api);
@@ -26,8 +28,31 @@ namespace VsQuest
 
             api.RegisterItemClass("ItemDebugTool", typeof(ItemDebugTool));
 
-            actionObjectiveRegistry.Add("plantflowers", new NearbyFlowersActionObjective());
-            actionObjectiveRegistry.Add("hasAttribute", new PlayerHasAttributeActionObjective());
+            ActionObjectiveRegistry.Add("plantflowers", new NearbyFlowersActionObjective());
+            ActionObjectiveRegistry.Add("hasAttribute", new PlayerHasAttributeActionObjective());
+
+            try
+            {
+                Config = api.LoadModConfig<QuestConfig>("questconfig.json");
+                if (Config != null)
+                {
+                    api.Logger.Notification("Mod Config successfully loaded.");
+                }
+                else
+                {
+                    api.Logger.Notification("No Mod Config specified. Falling back to default settings");
+                    Config = new QuestConfig();
+                }
+            }
+            catch
+            {
+                Config = new QuestConfig();
+                api.Logger.Error("Failed to load custom mod configuration. Falling back to default settings!");
+            }
+            finally
+            {
+                api.StoreModConfig(Config, "questconfig.json");
+            }
         }
 
         public override void StartClientSide(ICoreClientAPI capi)
@@ -49,20 +74,20 @@ namespace VsQuest
                 .RegisterMessageType<QuestCompletedMessage>().SetMessageHandler<QuestCompletedMessage>((player, message) => OnQuestCompleted(player, message, sapi))
                 .RegisterMessageType<QuestInfoMessage>();
 
-            actionRegistry.Add("despawnquestgiver", (api, message, byPlayer, args) => api.World.RegisterCallback(dt => api.World.GetEntityById(message.questGiverId).Die(EnumDespawnReason.Removed), int.Parse(args[0])));
-            actionRegistry.Add("playsound", (api, message, byPlayer, args) => api.World.PlaySoundFor(new AssetLocation(args[0]), byPlayer));
-            actionRegistry.Add("spawnentities", ActionUtil.SpawnEntities);
-            actionRegistry.Add("spawnany", ActionUtil.SpawnAnyOfEntities);
-            actionRegistry.Add("spawnsmoke", ActionUtil.SpawnSmoke);
-            actionRegistry.Add("recruitentity", ActionUtil.RecruitEntity);
-            actionRegistry.Add("healplayer", (api, message, byPlayer, args) => byPlayer.Entity.ReceiveDamage(new DamageSource() { Type = EnumDamageType.Heal }, 100));
-            actionRegistry.Add("addplayerattribute", (api, message, byPlayer, args) => byPlayer.Entity.WatchedAttributes.SetString(args[0], args[1]));
-            actionRegistry.Add("removeplayerattribute", (api, message, byPlayer, args) => byPlayer.Entity.WatchedAttributes.RemoveAttribute(args[0]));
-            actionRegistry.Add("completequest", ActionUtil.CompleteQuest);
-            actionRegistry.Add("acceptquest", (api, message, byPlayer, args) => OnQuestAccepted(byPlayer, new QuestAcceptedMessage() { questGiverId = long.Parse(args[0]), questId = args[1] }, api));
-            actionRegistry.Add("giveitem", ActionUtil.GiveItem);
-            actionRegistry.Add("addtraits", ActionUtil.AddTraits);
-            actionRegistry.Add("removetraits", ActionUtil.RemoveTraits);
+            ActionRegistry.Add("despawnquestgiver", (api, message, byPlayer, args) => api.World.RegisterCallback(dt => api.World.GetEntityById(message.questGiverId).Die(EnumDespawnReason.Removed), int.Parse(args[0])));
+            ActionRegistry.Add("playsound", (api, message, byPlayer, args) => api.World.PlaySoundFor(new AssetLocation(args[0]), byPlayer));
+            ActionRegistry.Add("spawnentities", ActionUtil.SpawnEntities);
+            ActionRegistry.Add("spawnany", ActionUtil.SpawnAnyOfEntities);
+            ActionRegistry.Add("spawnsmoke", ActionUtil.SpawnSmoke);
+            ActionRegistry.Add("recruitentity", ActionUtil.RecruitEntity);
+            ActionRegistry.Add("healplayer", (api, message, byPlayer, args) => byPlayer.Entity.ReceiveDamage(new DamageSource() { Type = EnumDamageType.Heal }, 100));
+            ActionRegistry.Add("addplayerattribute", (api, message, byPlayer, args) => byPlayer.Entity.WatchedAttributes.SetString(args[0], args[1]));
+            ActionRegistry.Add("removeplayerattribute", (api, message, byPlayer, args) => byPlayer.Entity.WatchedAttributes.RemoveAttribute(args[0]));
+            ActionRegistry.Add("completequest", ActionUtil.CompleteQuest);
+            ActionRegistry.Add("acceptquest", (api, message, byPlayer, args) => OnQuestAccepted(byPlayer, new QuestAcceptedMessage() { questGiverId = long.Parse(args[0]), questId = args[1] }, api));
+            ActionRegistry.Add("giveitem", ActionUtil.GiveItem);
+            ActionRegistry.Add("addtraits", ActionUtil.AddTraits);
+            ActionRegistry.Add("removetraits", ActionUtil.RemoveTraits);
 
             sapi.Event.GameWorldSave += () => OnSave(sapi);
             sapi.Event.PlayerDisconnect += player => OnDisconnect(player, sapi);
@@ -76,13 +101,10 @@ namespace VsQuest
             base.AssetsLoaded(api);
             foreach (var mod in api.ModLoader.Mods)
             {
-                List<Quest> quests = api.Assets.TryGet(new AssetLocation(mod.Info.ModID, "config/quests.json"))?.ToObject<List<Quest>>();
-                if (quests == null) continue;
-
-                foreach (var quest in quests)
-                {
-                    questRegistry.Add(quest.id, quest);
-                }
+                api.Assets
+                    .GetMany<List<Quest>>(api.Logger, "config/quests", mod.Info.ModID)
+                    .SelectMany(pair => pair.Value)
+                    .Foreach(quest => QuestRegistry.Add(quest.id, quest));
             }
         }
 
@@ -135,7 +157,7 @@ namespace VsQuest
 
         private void OnQuestAccepted(IServerPlayer fromPlayer, QuestAcceptedMessage message, ICoreServerAPI sapi)
         {
-            var quest = questRegistry[message.questId];
+            var quest = QuestRegistry[message.questId];
             var killTrackers = new List<EventTracker>();
             foreach (var objective in quest.killObjectives)
             {
@@ -183,7 +205,7 @@ namespace VsQuest
             {
                 try
                 {
-                    actionRegistry[action.id].Invoke(sapi, message, fromPlayer, action.args);
+                    ActionRegistry[action.id].Invoke(sapi, message, fromPlayer, action.args);
                 }
                 catch (Exception ex)
                 {
@@ -213,7 +235,7 @@ namespace VsQuest
 
         private void rewardPlayer(IServerPlayer fromPlayer, QuestCompletedMessage message, ICoreServerAPI sapi, Entity questgiver)
         {
-            var quest = questRegistry[message.questId];
+            var quest = QuestRegistry[message.questId];
             foreach (var reward in quest.itemRewards)
             {
                 CollectibleObject item = sapi.World.GetItem(new AssetLocation(reward.itemCode));
@@ -248,7 +270,7 @@ namespace VsQuest
             {
                 try
                 {
-                    actionRegistry[action.id].Invoke(sapi, message, fromPlayer, action.args);
+                    ActionRegistry[action.id].Invoke(sapi, message, fromPlayer, action.args);
                 }
                 catch (Exception ex)
                 {
@@ -269,8 +291,13 @@ namespace VsQuest
 
         private void OnQuestInfoMessage(QuestInfoMessage message, ICoreClientAPI capi)
         {
-            new QuestSelectGui(capi, message.questGiverId, message.availableQestIds, message.activeQuests).TryOpen();
+            new QuestSelectGui(capi, message.questGiverId, message.availableQestIds, message.activeQuests, Config).TryOpen();
         }
+    }
+
+    public class QuestConfig
+    {
+        public bool CloseGuiAfterAcceptingAndCompleting = true;
     }
 
     [ProtoContract]

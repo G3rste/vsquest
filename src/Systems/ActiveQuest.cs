@@ -55,8 +55,8 @@ namespace VsQuest
         public bool isCompletable(IPlayer byPlayer)
         {
             var questSystem = byPlayer.Entity.Api.ModLoader.GetModSystem<QuestSystem>();
-            var quest = questSystem.questRegistry[questId];
-            var activeActionObjectives = quest.actionObjectives.ConvertAll<ActiveActionObjective>(objective => questSystem.actionObjectiveRegistry[objective.id]);
+            var quest = questSystem.QuestRegistry[questId];
+            var activeActionObjectives = quest.actionObjectives.ConvertAll<ActiveActionObjective>(objective => questSystem.ActionObjectiveRegistry[objective.id]);
             bool completable = true;
             for (int i = 0; i < quest.blockPlaceObjectives.Count; i++)
             {
@@ -85,7 +85,7 @@ namespace VsQuest
         public void completeQuest(IPlayer byPlayer)
         {
             var questSystem = byPlayer.Entity.Api.ModLoader.GetModSystem<QuestSystem>();
-            var quest = questSystem.questRegistry[questId];
+            var quest = questSystem.QuestRegistry[questId];
             foreach (var gatherObjective in quest.gatherObjectives)
             {
                 handOverItems(byPlayer, gatherObjective);
@@ -108,15 +108,15 @@ namespace VsQuest
         public List<int> gatherProgress(IPlayer byPlayer)
         {
             var questSystem = byPlayer.Entity.Api.ModLoader.GetModSystem<QuestSystem>();
-            var quest = questSystem.questRegistry[questId];
+            var quest = questSystem.QuestRegistry[questId];
             return quest.gatherObjectives.ConvertAll<int>(gatherObjective => itemsGathered(byPlayer, gatherObjective));
         }
 
         public List<int> actionProgress(IPlayer byPlayer)
         {
             var questSystem = byPlayer.Entity.Api.ModLoader.GetModSystem<QuestSystem>();
-            var quest = questSystem.questRegistry[questId];
-            var activeActionObjectives = quest.actionObjectives.ConvertAll<ActiveActionObjective>(objective => questSystem.actionObjectiveRegistry[objective.id]);
+            var quest = questSystem.QuestRegistry[questId];
+            var activeActionObjectives = quest.actionObjectives.ConvertAll<ActiveActionObjective>(objective => questSystem.ActionObjectiveRegistry[objective.id]);
             List<int> result = new List<int>();
             for (int i = 0; i < activeActionObjectives.Count; i++)
             {

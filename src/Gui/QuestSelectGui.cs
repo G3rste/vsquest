@@ -18,19 +18,15 @@ namespace VsQuest
         private IClientPlayer player;
 
         private int curTab = 0;
-        public QuestSelectGui(ICoreClientAPI capi, long questGiverId, List<string> availableQuestIds, List<ActiveQuest> activeQuests) : base(capi)
+        private bool closeGuiAfterAcceptingAndCompleting;
+        public QuestSelectGui(ICoreClientAPI capi, long questGiverId, List<string> availableQuestIds, List<ActiveQuest> activeQuests, QuestConfig questConfig) : base(capi)
         {
             this.questGiverId = questGiverId;
             this.availableQuestIds = availableQuestIds;
             this.activeQuests = activeQuests;
-            selectedActiveQuest = activeQuests == null ? null : activeQuests.Find(quest => true);
+            selectedActiveQuest = activeQuests?.Find(quest => true);
             player = capi.World.Player;
-            recompose();
-        }
-
-        private void OnTabClicked(int tabId)
-        {
-            curTab = tabId;
+            closeGuiAfterAcceptingAndCompleting = questConfig.CloseGuiAfterAcceptingAndCompleting;
             recompose();
         }
 
@@ -95,7 +91,8 @@ namespace VsQuest
                     SingleComposer.AddStaticText(Lang.Get("vsquest:no-quest-active-desc"), CairoFont.WhiteSmallishText(), ElementBounds.Fixed(0, 60, 400, 500))
                         .AddButton(Lang.Get("vsquest:button-cancel"), TryClose, ElementBounds.FixedOffseted(EnumDialogArea.CenterBottom, 0, -10, 200, 20));
                 }
-            };
+            }
+            ;
             SingleComposer.GetScrollbar("scrollbar")?.SetHeights((float)questTextBounds.fixedHeight, (float)questTextBounds.fixedHeight);
             SingleComposer.EndChildElements()
                     .Compose();
@@ -107,7 +104,7 @@ namespace VsQuest
         {
             var textArea = SingleComposer.GetRichtext("questtext");
 
-            textArea.Bounds.fixedY = - value;
+            textArea.Bounds.fixedY = -value;
             textArea.Bounds.CalcWorldBounds();
         }
 
@@ -143,7 +140,15 @@ namespace VsQuest
                 questId = selectedAvailableQuestId
             };
             capi.Network.GetChannel("vsquest").SendPacket(message);
-            TryClose();
+            if (closeGuiAfterAcceptingAndCompleting)
+            {
+                TryClose();
+            }
+            else
+            {
+                availableQuestIds.Remove(selectedAvailableQuestId);
+                recompose();
+            }
             return true;
         }
 
@@ -155,7 +160,15 @@ namespace VsQuest
                 questId = selectedActiveQuest.questId
             };
             capi.Network.GetChannel("vsquest").SendPacket(message);
-            TryClose();
+            if (closeGuiAfterAcceptingAndCompleting)
+            {
+                TryClose();
+            }
+            else
+            {
+                activeQuests.RemoveAll(quest => selectedActiveQuest.questId == quest.questId);
+                recompose();
+            }
             return true;
         }
         private void onAvailableQuestSelectionChanged(string questId, bool selected)

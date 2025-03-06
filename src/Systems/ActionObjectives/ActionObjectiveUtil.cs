@@ -1,4 +1,5 @@
 using Vintagestory.API.Common;
+using Vintagestory.API.Config;
 using Vintagestory.API.MathTools;
 
 namespace VsQuest
@@ -8,7 +9,7 @@ namespace VsQuest
         public static int countBlockEntities(Vec3i pos, IBlockAccessor blockAccessor, Func<BlockEntity, bool> matcher)
         {
             int blockCount = 0;
-            int chunksize = blockAccessor.ChunkSize;
+            int chunksize = GlobalConstants.ChunkSize;
             for (int x = pos.X - 100; x <= pos.X + 100; x += chunksize)
             {
                 for (int y = pos.Y - 15; y <= pos.Y + 15; y += chunksize)
