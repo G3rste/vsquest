@@ -58,10 +58,11 @@ namespace VsQuest
 
         private int Dialog_DialogTriggers(EntityAgent triggeringEntity, string value, JsonObject data)
         {
-            var behaviorConversable = entity.GetBehavior<EntityBehaviorConversable>();
-            behaviorConversable.Dialog?.TryClose();
             if (value == "openquests" && triggeringEntity.Api is ICoreServerAPI sapi)
             {
+                var behaviorConversable = entity.GetBehavior<EntityBehaviorConversable>();
+                behaviorConversable.Dialog?.TryClose();
+                
                 SendQuestInfoMessageToClient(sapi, triggeringEntity as EntityPlayer);
                 return 0;
             }
