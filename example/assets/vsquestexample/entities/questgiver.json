@@ -1,0 +1,166 @@
+{
+	"code": "questgiver",
+	"class": "EntityAgent",
+	"canClimb": true,
+	"hitboxSize": {
+		"x": 0.6,
+		"y": 1.75
+	},
+	"deadHitboxSize": {
+		"x": 0.75,
+		"y": 0.5
+	},
+	"client": {
+		"renderer": "Shape",
+		"shape": {
+			"base": "game:entity/humanoid/trader"
+		},
+		"texture": {
+			"base": "game:entity/humanoid/trader",
+			"alternates": [
+				{
+					"base": "game:entity/humanoid/traderclothes/set1"
+				},
+				{
+					"base": "game:entity/humanoid/traderclothes/set2"
+				},
+				{
+					"base": "game:entity/humanoid/traderclothes/set3"
+				},
+				{
+					"base": "game:entity/humanoid/traderclothes/set4"
+				},
+				{
+					"base": "game:entity/humanoid/traderclothes/set5"
+				}
+			]
+		},
+		"behaviors": [
+			{
+				"code": "nametag",
+				"showtagonlywhentargeted": true
+			},
+			{
+				"code": "repulseagents"
+			},
+			{
+				"code": "controlledphysics",
+				"stepHeight": 1.01
+			},
+			{
+				"code": "interpolateposition"
+			},
+			{
+				"code": "questgiver"
+			}
+		],
+		"animations": [
+			{
+				"code": "die",
+				"animation": "die",
+				"animationSpeed": 1.75,
+				"weight": 10,
+				"blendMode": "AddAverage"
+			},
+			{
+				"code": "hurt",
+				"animation": "hurt",
+				"animationSpeed": 2,
+				"blendMode": "AddAverage"
+			},
+			{
+				"code": "idle",
+				"animation": "lazyidle",
+				"blendMode": "AddAverage"
+			}
+		]
+	},
+	"server": {
+		"attributes": {
+			"pathfinder": {
+				"minTurnAnglePerSec": 720,
+				"maxTurnAnglePerSec": 1440
+			}
+		},
+		"behaviors": [
+			{
+				"code": "nametag",
+				"showtagonlywhentargeted": true,
+				"selectFromRandomName": [
+					"Aphid",
+					"Erik",
+					"Adachi",
+					"Farhad",
+					"Pegalesharro",
+					"Floyd",
+					"Temper",
+					"En Repos",
+					"Zadak"
+				]
+			},
+			{
+				"code": "repulseagents"
+			},
+			{
+				"code": "controlledphysics",
+				"stepHeight": 1.01
+			},
+			{
+				"code": "reviveondeath",
+				"minHours": 24,
+				"maxHours": 72
+			},
+			{
+				"code": "health",
+				"currenthealth": 25,
+				"maxhealth": 25
+			},
+			{
+				"code": "emotionstates",
+				"states": [
+					{
+						"code": "aggressiveondamage",
+						"duration": 6,
+						"chance": 0.6,
+						"slot": 0,
+						"priority": 2,
+						"accumType": "noaccum"
+					},
+					{
+						"code": "fleeondamage",
+						"duration": 10,
+						"chance": 0.4,
+						"slot": 0,
+						"priority": 1,
+						"accumType": "max"
+					}
+				]
+			},
+			{
+				"code": "taskai",
+				"aitasks": [
+					{
+						"code": "lookaround",
+						"priority": 0.5
+					}
+				]
+			},
+			{
+				"code": "questgiver",
+				"quests": [
+					"vsquestexample:quest1",
+					"vsquestexample:quest2",
+					"vsquestexample:kill1drifter",
+					"vsquestexample:kill1deepdrifter",
+					"vsquest:quest-freeghost",
+					"vsquestexample:talktootherguy",
+					"vsquestexample:placeandbreak",
+					"vsquestexample:vanish"
+				],
+				"selectrandom": true,
+				"selectrandomcount": 4
+			}
+		]
+	},
+	"sounds": {}
+}

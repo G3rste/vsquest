@@ -1,0 +1,14 @@
+{
+    "quest-select-title": "Ofertas de missão",
+    "tab-available-quests": "Missões Disponíveis",
+    "tab-active-quests": "Missões Ativas",
+    "button-cancel": "Cancelar",
+    "button-accept": "Aceitar",
+    "button-complete": "Concluir",
+    "no-quest-available-desc": "Atualmente, não preciso de sua ajuda com nada.",
+    "no-quest-active-desc": "Eu não me lembro de ter nenhum contrato aberto com você.",
+    "access-quests": "Conversar com",
+    "quest-freeghost-title": "Eu quero descansar em um lugar melhor",
+    "quest-freeghost-desc": "Este lugar parece meio triste. Você pode plantar algumas flores para deixá-lo mais bonito?",
+    "quest-freeghost-obj": "Flores plantadas: {0}/8"
+}

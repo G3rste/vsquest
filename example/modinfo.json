@@ -1,0 +1,24 @@
+{
+  "Type": 1,
+  "TextureSize": 32,
+  "Name": "VS Quest Example",
+  "Version": "4.0.0",
+  "NetworkVersion": null,
+  "IconPath": null,
+  "BackgroundPaths": null,
+  "Description": "Example for using the vsquest api.",
+  "Website": "",
+  "CoreMod": false,
+  "ModID": "vsquestexample",
+  "Authors": [
+    "G3rste"
+  ],
+  "Contributors": [],
+  "Side": "Universal",
+  "RequiredOnClient": true,
+  "RequiredOnServer": true,
+  "Dependencies": {
+    "game": "1.22.0-rc2",
+    "vsquest": "4.0.0"
+  }
+}

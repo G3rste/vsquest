@@ -1,0 +1,92 @@
+{
+    "code": "debugtool",
+    "class": "ItemDebugTool",
+    "shape": {
+        "base": "game:item/tool/wrench"
+    },
+    "textures": {
+        "metal": {
+            "base": "game:item/resource/temporalgear"
+        }
+    },
+    "creativeinventory": {
+        "meta": [
+            "*"
+        ]
+    },
+    "maxstacksize": 64,
+    "attributes": {
+        "handbook": {
+            "exclude": true
+        }
+    },
+    "materialDensity": 900,
+    "heldTpHitAnimation": "breaktool",
+    "fpHandTransform": {
+        "translation": {
+            "x": 0,
+            "y": 0.4,
+            "z": 0
+        },
+        "rotation": {
+            "x": -33,
+            "y": 6,
+            "z": 90
+        },
+        "origin": {
+            "x": 0.5,
+            "y": 0,
+            "z": 0.5
+        },
+        "scale": 2.75
+    },
+    "guiTransform": {
+        "translation": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+        },
+        "rotation": {
+            "x": -58,
+            "y": 46,
+            "z": 8
+        },
+        "origin": {
+            "x": 0.53,
+            "y": 0,
+            "z": 0.48
+        },
+        "scale": 2.6
+    },
+    "groundTransform": {
+        "translation": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+        },
+        "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+        },
+        "origin": {
+            "x": 0.5,
+            "y": 0,
+            "z": 0.5
+        },
+        "scale": 4.5
+    },
+    "tpHandTransform": {
+        "translation": {
+            "x": -0.85,
+            "y": -0.68,
+            "z": -0.22
+        },
+        "rotation": {
+            "x": 90,
+            "y": 1,
+            "z": 0
+        },
+        "scale": 0.7
+    }
+}

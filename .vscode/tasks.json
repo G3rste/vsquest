@@ -1,10 +1,10 @@
 {
-    "version": "2.0.0",
+	"version": "2.0.0",
     "tasks": [
         {
             "label": "build",
             "command": "dotnet",
-            "type": "process",
+		"type": "process",
             "args": [
                 "build",
                 "-c",
@@ -15,8 +15,15 @@
         },
         {
             "label": "package",
-            "command": "dotnet",
-            "type": "process",
+		"command": "dotnet",
+		"args": [ "build", "-c", "Debug" ]
+	},{
+		"label": "Build (Release)",
+		"group": "build",
+		"presentation": { "reveal": "silent" },
+		"problemMatcher": "$msCompile",
+		
+		"type": "process",
             "args": [
                 "run",
                 "--project",
@@ -26,7 +33,7 @@
         },
         {
             "label": "build (Cake)",
-            "command": "dotnet",
+		"command": "dotnet",
             "type": "process",
             "args": [
                 "build",

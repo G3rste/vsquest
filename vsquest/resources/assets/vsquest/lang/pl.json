@@ -1,0 +1,14 @@
+{
+    "quest-select-title": "Oferty zadań",
+    "tab-available-quests": "Dostępne zadania",
+    "tab-active-quests": "Aktywne zadania",
+    "button-cancel": "Anuluj",
+    "button-accept": "Akceptuj",
+    "button-complete": "Zakończ",
+    "no-quest-available-desc": "Obecnie nie potrzebuję twojej pomocy.",
+    "no-quest-active-desc": "Nie przypominam sobie, żebym miał z tobą jakieś otwarte umowy.",
+    "access-quests": "Porozmawiaj z",
+    "quest-freeghost-title": "Chcę odpocząć w ładniejszym miejscu",
+    "quest-freeghost-desc": "To miejsce wygląda na smutne, czy możesz posadzić kilka kwiatów, aby wyglądało ładniej?",
+    "quest-freeghost-obj": "Posadzone kwiaty: {0}/8"
+}

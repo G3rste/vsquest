@@ -1,0 +1,15 @@
+{
+    "type": "code",
+    "modid": "vsquest",
+    "name": "VS Quest",
+    "side": "universal",
+    "authors": [
+        "G3rste",
+        "Zwetsche"
+    ],
+    "description": "Mod that focuses on implementing a Quest System.",
+    "version": "4.0.0",
+    "dependencies": {
+        "game": "1.22.0-rc2"
+    }
+}

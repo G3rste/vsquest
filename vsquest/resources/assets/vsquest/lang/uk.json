@@ -1,0 +1,14 @@
+{
+    "quest-select-title": "Пропозиції завдань",
+    "tab-available-quests": "Доступні завдання",
+    "tab-active-quests": "Активні завдання",
+    "button-cancel": "Відміна",
+    "button-accept": "Прийняти",
+    "button-complete": "Завершено",
+    "no-quest-available-desc": "Мені наразі не потрібна ваша допомога.",
+    "no-quest-active-desc": "Я не пам'ятаю, що я мав з вами будь-які угоди.",
+    "access-quests": "Побалакай з",
+    "quest-freeghost-title": "Я хочу відпочити в кращому місці",
+    "quest-freeghost-desc": "Це місце виглядає якось сумно, чи можете ви посадити квіти, щоб воно виглядало краще?",
+    "quest-freeghost-obj": "Висаджені квіти: {0}/8"
+}

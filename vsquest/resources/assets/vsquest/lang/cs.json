@@ -1,0 +1,14 @@
+{
+    "quest-select-title": "Nabídka úkolů",
+    "tab-available-quests": "Dostupné úkoly",
+    "tab-active-quests": "Aktivní úkoly",
+    "button-cancel": "Zrušit",
+    "button-accept": "Přijmout",
+    "button-complete": "Dokončit",
+    "no-quest-available-desc": "V současné době vaši pomoc nepotřebuji.",
+    "no-quest-active-desc": "Nevzpomínám si, že bych s vámi měl nějaké otevřené zakázky.",
+    "access-quests": "Promluvit si",
+    "quest-freeghost-title": "Chci si odpočinout na hezčím místě",
+    "quest-freeghost-desc": "Tohle místo vypadá trochu smutně, můžete zasadit nějaké květiny, aby to vypadalo hezčí?",
+    "quest-freeghost-obj": "Zasazené květiny: {0}/8"
+}

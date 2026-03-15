@@ -9,112 +9,150 @@ using Cake.Json;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Vintagestory.API.Common;
 
 namespace CakeBuild
 {
-    public static class Program
-    {
-        public static int Main(string[] args)
-        {
-            return new CakeHost()
-                .UseContext<BuildContext>()
-                .Run(args);
-        }
-    }
+	public static class Program
+	{
+		public static int Main(string[] args)
+		{
+			return new CakeHost()
+				.UseContext<BuildContext>()
+				.Run(args);
+		}
+	}
 
-    public class BuildContext : FrostingContext
-    {
-        public const string ProjectName = "vsquest";
+	public class BuildContext : FrostingContext
+	{
+		public const string ProjectName = "vsquest";
+        public const string ExampleModInfoPath = "../example/modinfo.json";
+        public const string ModInfoPath = $"../{ProjectName}/resources/modinfo.json";
+		public const string ModIconPath = $"../{ProjectName}/resources/modicon.png";
+        public const string AssetsPath = $"../{ProjectName}/resources/assets";
+
         public string BuildConfiguration { get; }
-        public string Version { get; }
-        public string Name { get; }
-        public bool SkipJsonValidation { get; }
+		public string Version { get; }
+		public string GameVersion { get; }
+		public string Name { get; }
+		public bool SkipJsonValidation { get; }
 
-        public BuildContext(ICakeContext context)
-            : base(context)
-        {
-            BuildConfiguration = context.Argument("configuration", "Release");
-            SkipJsonValidation = context.Argument("skipJsonValidation", false);
-            var modInfo = context.DeserializeJsonFromFile<ModInfo>($"../{ProjectName}/modinfo.json");
-            Version = modInfo.Version;
+		public BuildContext(ICakeContext context)
+			: base(context)
+		{
+			BuildConfiguration = context.Argument("configuration", "Release");
+			SkipJsonValidation = context.Argument("skipJsonValidation", false);
+
+			var modInfo = context.DeserializeJsonFromFile<ModInfo>(ModInfoPath);
             Name = modInfo.ModID;
-        }
-    }
+            Version = modInfo.Version;
+            GameVersion = modInfo.Dependencies.First(d => d.ModID.Equals("game", StringComparison.InvariantCultureIgnoreCase)).Version;
+		}
+	}
 
-    [TaskName("ValidateJson")]
-    public sealed class ValidateJsonTask : FrostingTask<BuildContext>
+	[TaskName("ValidateJson")]
+	public sealed class ValidateJsonTask : FrostingTask<BuildContext>
+	{
+		public override void Run(BuildContext context)
+		{
+			if (context.SkipJsonValidation)
+			{
+				return;
+			}
+			var jsonFiles = context.GetFiles($"{BuildContext.AssetsPath}/**/*.json").Concat(context.GetFiles("../example/assets/**/*.json"));
+			foreach (var file in jsonFiles)
+			{
+				try
+				{
+					var json = File.ReadAllText(file.FullPath);
+					JToken.Parse(json);
+				}
+				catch (JsonException ex)
+				{
+					throw new Exception($"Validation failed for JSON file: {file.FullPath}{Environment.NewLine}{ex.Message}", ex);
+				}
+			}
+		}
+	}
+
+    [TaskName("PackExemple")]
+    [IsDependentOn(typeof(ValidateJsonTask))]
+    public sealed class PackExempleTask : FrostingTask<BuildContext>
     {
-        public override void Run(BuildContext context)
-        {
-            if (context.SkipJsonValidation)
-            {
-                return;
-            }
-            var jsonFiles = context.GetFiles($"../{BuildContext.ProjectName}/assets/**/*.json");
-            foreach (var file in jsonFiles)
-            {
-                try
-                {
-                    var json = File.ReadAllText(file.FullPath);
-                    JToken.Parse(json);
-                }
-                catch (JsonException ex)
-                {
-                    throw new Exception($"Validation failed for JSON file: {file.FullPath}{Environment.NewLine}{ex.Message}", ex);
-                }
-            }
+		public override void Run(BuildContext context)
+		{
+			List<ModDependency> dependencies = [new ModDependency("game", context.GameVersion), new ModDependency(context.Name, context.Version)];
+
+			var modinfo = context.DeserializeJsonFromFile<ModInfo>(BuildContext.ExampleModInfoPath);
+			modinfo.Version = context.Version;
+			modinfo.Dependencies = dependencies.AsReadOnly();
+
+			context.SerializeJsonToPrettyFile(BuildContext.ExampleModInfoPath, modinfo);
+
+            context.EnsureDirectoryExists("../Releases");
+            context.CleanDirectory("../Releases");
+            context.Zip($"../example", $"../Releases/{context.Name}example_{context.Version}.zip");
         }
     }
 
     [TaskName("Build")]
-    [IsDependentOn(typeof(ValidateJsonTask))]
-    public sealed class BuildTask : FrostingTask<BuildContext>
+	[IsDependentOn(typeof(PackExempleTask))]
+	public sealed class BuildTask : FrostingTask<BuildContext>
+	{
+		public override void Run(BuildContext context)
+		{
+			context.DotNetClean($"../{BuildContext.ProjectName}/{BuildContext.ProjectName}.csproj",
+				new DotNetCleanSettings
+				{
+					Configuration = context.BuildConfiguration
+				});
+
+			
+			context.DotNetPublish($"../{BuildContext.ProjectName}/{BuildContext.ProjectName}.csproj",
+				new DotNetPublishSettings
+				{
+					Configuration = context.BuildConfiguration
+				});
+		}
+	}
+
+	[TaskName("Package")]
+	[IsDependentOn(typeof(BuildTask))]
+	public sealed class PackageTask : FrostingTask<BuildContext>
+	{
+		public override void Run(BuildContext context)
+		{
+			context.EnsureDirectoryExists($"../Releases/{context.Name}");
+			context.CopyFiles($"../{BuildContext.ProjectName}/bin/{context.BuildConfiguration}/Mods/mod/publish/*", $"../Releases/{context.Name}");
+			if (context.DirectoryExists(BuildContext.AssetsPath))
+			{
+				context.CopyDirectory(BuildContext.AssetsPath, $"../Releases/{context.Name}/assets");
+			}
+			context.CopyFile(BuildContext.ModInfoPath, $"../Releases/{context.Name}/modinfo.json");
+			if (context.FileExists(BuildContext.ModIconPath))
+			{
+				context.CopyFile(BuildContext.ModIconPath, $"../Releases/{context.Name}/modicon.png");
+			}
+			context.Zip($"../Releases/{context.Name}", $"../Releases/{context.Name}_{context.Version}.zip");
+		}
+	}
+
+    [TaskName("Publish")]
+    [IsDependentOn(typeof(PackageTask))]
+    public class PublishTask : FrostingTask<BuildContext>
     {
         public override void Run(BuildContext context)
         {
-            context.DotNetClean($"../{BuildContext.ProjectName}/{BuildContext.ProjectName}.csproj",
-                new DotNetCleanSettings
-                {
-                    Configuration = context.BuildConfiguration
-                });
-
-
-            context.DotNetPublish($"../{BuildContext.ProjectName}/{BuildContext.ProjectName}.csproj",
-                new DotNetPublishSettings
-                {
-                    Configuration = context.BuildConfiguration
-                });
-        }
-    }
-
-    [TaskName("Package")]
-    [IsDependentOn(typeof(BuildTask))]
-    public sealed class PackageTask : FrostingTask<BuildContext>
-    {
-        public override void Run(BuildContext context)
-        {
-            context.EnsureDirectoryExists("../Releases");
-            context.CleanDirectory("../Releases");
-            context.EnsureDirectoryExists($"../Releases/{context.Name}");
-            context.CopyFiles($"../{BuildContext.ProjectName}/bin/{context.BuildConfiguration}/Mods/mod/publish/*", $"../Releases/{context.Name}");
-            if (context.DirectoryExists($"../{BuildContext.ProjectName}/assets"))
-            {
-                context.CopyDirectory($"../{BuildContext.ProjectName}/assets", $"../Releases/{context.Name}/assets");
-            }
-            context.CopyFile($"../{BuildContext.ProjectName}/modinfo.json", $"../Releases/{context.Name}/modinfo.json");
-            if (context.FileExists($"../{BuildContext.ProjectName}/modicon.png"))
-            {
-                context.CopyFile($"../{BuildContext.ProjectName}/modicon.png", $"../Releases/{context.Name}/modicon.png");
-            }
-            context.Zip($"../Releases/{context.Name}", $"../Releases/{context.Name}_{context.Version}.zip");
+			
         }
     }
 
     [TaskName("Default")]
-    [IsDependentOn(typeof(PackageTask))]
-    public class DefaultTask : FrostingTask
-    {
-    }
+	[IsDependentOn(typeof(PublishTask))]
+	public class DefaultTask : FrostingTask
+	{
+	}
 }
