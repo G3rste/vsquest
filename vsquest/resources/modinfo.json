@@ -10,6 +10,6 @@
     "description": "Mod that focuses on implementing a Quest System.",
     "version": "4.0.0",
     "dependencies": {
-        "game": "1.22.0-rc2"
+        "game": "1.22.0-rc.2"
     }
 }

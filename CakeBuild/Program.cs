@@ -4,6 +4,7 @@ using Cake.Common.Tools.DotNet;
 using Cake.Common.Tools.DotNet.Clean;
 using Cake.Common.Tools.DotNet.Publish;
 using Cake.Core;
+using Cake.Core.Diagnostics;
 using Cake.Frosting;
 using Cake.Json;
 using Newtonsoft.Json;
@@ -12,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using Vintagestory.API.Common;
 
 namespace CakeBuild
@@ -119,24 +121,65 @@ namespace CakeBuild
 		}
 	}
 
-	[TaskName("Package")]
-	[IsDependentOn(typeof(BuildTask))]
+    [TaskName("RetrieveLang")]
+    [IsDependentOn(typeof(BuildTask))]
+    public sealed class RetrieveLangTask : FrostingTask<BuildContext>
+    {
+        public override void Run(BuildContext context)
+        {
+			var url = $"https://dl.dropboxusercontent.com/scl/fo/q7u3idxz3edsytki8n6m4/h/{context.Name}-g3rste.zip?dl=1&rlkey=mc3xn22a49qwrjp5cmx1he0ay";
+			var filePath = $"../Releases/test.zip";
+            var directoryPath = $"{BuildContext.AssetsPath}/{context.Name}/lang";
+
+            using var httpClient = new HttpClient
+            {
+                Timeout = TimeSpan.FromSeconds(30)
+            };
+
+            try
+			{
+				using (var response = httpClient.GetAsync(url).GetAwaiter().GetResult())
+				{
+                    response.EnsureSuccessStatusCode();
+
+                    using var contentStream = response.Content.ReadAsStream();
+                    using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None);
+
+                    contentStream.CopyTo(fileStream);
+                }
+				
+				context.Unzip(filePath, directoryPath, true);
+				context.DeleteFile(filePath);
+			}
+			catch (Exception ex)
+			{
+				context.Log.Error(ex.Message);
+			}
+        }
+    }
+
+    [TaskName("Package")]
+	[IsDependentOn(typeof(RetrieveLangTask))]
 	public sealed class PackageTask : FrostingTask<BuildContext>
 	{
 		public override void Run(BuildContext context)
 		{
-			context.EnsureDirectoryExists($"../Releases/{context.Name}");
-			context.CopyFiles($"../{BuildContext.ProjectName}/bin/{context.BuildConfiguration}/Mods/mod/publish/*", $"../Releases/{context.Name}");
+			var modDir = $"../Releases/{context.Name}";
+
+            context.EnsureDirectoryExists(modDir);
+			context.CopyFiles($"../{BuildContext.ProjectName}/bin/{context.BuildConfiguration}/Mods/mod/publish/*", modDir);
 			if (context.DirectoryExists(BuildContext.AssetsPath))
 			{
-				context.CopyDirectory(BuildContext.AssetsPath, $"../Releases/{context.Name}/assets");
+				context.CopyDirectory(BuildContext.AssetsPath, $"{modDir}/assets");
 			}
-			context.CopyFile(BuildContext.ModInfoPath, $"../Releases/{context.Name}/modinfo.json");
+			context.CopyFile(BuildContext.ModInfoPath, $"{modDir}/modinfo.json");
 			if (context.FileExists(BuildContext.ModIconPath))
 			{
-				context.CopyFile(BuildContext.ModIconPath, $"../Releases/{context.Name}/modicon.png");
+				context.CopyFile(BuildContext.ModIconPath, $"{modDir}/modicon.png");
 			}
-			context.Zip($"../Releases/{context.Name}", $"../Releases/{context.Name}_{context.Version}.zip");
+
+			context.Zip(modDir, $"{modDir}_{context.Version}.zip");
+			context.DeleteDirectory(modDir, new() { Recursive = true });
 		}
 	}
 
@@ -146,7 +189,7 @@ namespace CakeBuild
     {
         public override void Run(BuildContext context)
         {
-			
+			//TODO: gh publish create
         }
     }
 

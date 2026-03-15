@@ -18,7 +18,7 @@
   "RequiredOnClient": true,
   "RequiredOnServer": true,
   "Dependencies": {
-    "game": "1.22.0-rc2",
+    "game": "1.22.0-rc.2",
     "vsquest": "4.0.0"
   }
 }

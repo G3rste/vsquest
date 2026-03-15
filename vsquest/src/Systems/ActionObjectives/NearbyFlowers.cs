@@ -21,7 +21,7 @@ namespace VsQuest
                     flowersNearby++;
                 }
             });
-            return new List<int>(new int[] { flowersNearby });
+            return new List<int>([flowersNearby]);
         }
     }
 }

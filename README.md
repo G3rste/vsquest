@@ -72,4 +72,4 @@ To convert an entity to a questgiver it needs the questgiver behavior:
 * **selectrandom**: if set to true, the questgiver will only offer a random selection of its quests
 * **selectrandomcount**: determines the number of random quests the questgiver offers
 
-![Thumbnail](resources/modicon.png)
+![Thumbnail](vsquest/resources/modicon.png)

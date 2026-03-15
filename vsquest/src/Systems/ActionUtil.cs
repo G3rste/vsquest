@@ -20,7 +20,7 @@ namespace VsQuest
                 var type = sapi.World.GetEntityType(new AssetLocation(code));
                 if (type == null)
                 {
-                    throw new QuestException(string.Format("Tried to spawn {0} for quest {1} but could not find the entity type!", code, message.questId));
+                    throw new QuestException(string.Format("Tried to spawn {0} for quest {1} but could not find the entity type!", code, message.QuestId));
                 }
                 //var entity = sapi.World.ClassRegistry.CreateEntity(type);
                 //entity.ServerPos = sapi.World.GetEntityById(message.questGiverId).ServerPos.Copy();
@@ -34,7 +34,7 @@ namespace VsQuest
             var type = sapi.World.GetEntityType(new AssetLocation(code));
             if (type == null)
             {
-                throw new QuestException(string.Format("Tried to spawn {0} for quest {1} but could not find the entity type!", code, message.questId));
+                throw new QuestException(string.Format("Tried to spawn {0} for quest {1} but could not find the entity type!", code, message.QuestId));
             }
             //var entity = sapi.World.ClassRegistry.CreateEntity(type);
             //entity.ServerPos = sapi.World.GetEntityById(message.questGiverId).ServerPos.Copy();
@@ -43,7 +43,7 @@ namespace VsQuest
 
         public static void RecruitEntity(ICoreServerAPI sapi, QuestMessage message, IPlayer byPlayer, string[] args)
         {
-            var recruit = sapi.World.GetEntityById(message.questGiverId);
+            var recruit = sapi.World.GetEntityById(message.QuestGiverId);
             recruit.WatchedAttributes.SetDouble("employedSince", sapi.World.Calendar.TotalHours);
             recruit.WatchedAttributes.SetString("guardedPlayerUid", byPlayer.PlayerUID);
             recruit.WatchedAttributes.SetBool("commandSit", false);
@@ -58,7 +58,7 @@ namespace VsQuest
 
             if (item == null)
             {
-                throw new QuestException(string.Format("Could not find item {0} for quest {1}!", code, message.questId));
+                throw new QuestException(string.Format("Could not find item {0} for quest {1}!", code, message.QuestId));
             }
 
             var stack = new ItemStack(item, int.Parse(args[1]));
@@ -75,13 +75,13 @@ namespace VsQuest
             switch (args.Length)
             {
                 case 1:
-                    questCompletedMessage = new QuestCompletedMessage() { questGiverId = long.Parse(args[1]), questId = args[0] };
+                    questCompletedMessage = new QuestCompletedMessage() { QuestGiverId = long.Parse(args[1]), QuestId = args[0] };
                     break;
                 case 2:
-                    questCompletedMessage = new QuestCompletedMessage() { questGiverId = message.questGiverId, questId = args[0] };
+                    questCompletedMessage = new QuestCompletedMessage() { QuestGiverId = message.QuestGiverId, QuestId = args[0] };
                     break;
                 default:
-                    questCompletedMessage = new QuestCompletedMessage() { questGiverId = message.questGiverId, questId = message.questId };
+                    questCompletedMessage = new QuestCompletedMessage() { QuestGiverId = message.QuestGiverId, QuestId = message.QuestId };
                     break;
             }
             questSystem.OnQuestCompleted(byPlayer, questCompletedMessage, sapi);
@@ -89,7 +89,7 @@ namespace VsQuest
 
         public static void SpawnSmoke(ICoreServerAPI sapi, QuestMessage message, IServerPlayer byPlayer, string[] args)
         {
-            SimpleParticleProperties smoke = new SimpleParticleProperties(
+            SimpleParticleProperties smoke = new(
                     40, 60,
                     ColorUtil.ToRgba(80, 100, 100, 100),
                     new Vec3d(),
@@ -102,7 +102,7 @@ namespace VsQuest
                     3f,
                     EnumParticleModel.Quad
                 );
-            var questgiver = sapi.World.GetEntityById(message.questGiverId);
+            var questgiver = sapi.World.GetEntityById(message.QuestGiverId);
             if (questgiver != null)
             {
                 smoke.MinPos = questgiver.Pos.XYZ.AddCopy(-1.5, -0.5, -1.5);
@@ -112,20 +112,20 @@ namespace VsQuest
         public static void AddTraits(ICoreServerAPI sapi, QuestMessage message, IServerPlayer byPlayer, string[] args)
         {
             var traits = byPlayer.Entity.WatchedAttributes
-                .GetStringArray("extraTraits", new string[0])
+                .GetStringArray("extraTraits", [])
                 .ToHashSet();
             traits.AddRange(args);
             byPlayer.Entity.WatchedAttributes
-                .SetStringArray("extraTraits", traits.ToArray());
+                .SetStringArray("extraTraits", [.. traits]);
         }
         public static void RemoveTraits(ICoreServerAPI sapi, QuestMessage message, IServerPlayer byPlayer, string[] args)
         {
             var traits = byPlayer.Entity.WatchedAttributes
-                .GetStringArray("extraTraits", new string[0])
+                .GetStringArray("extraTraits", [])
                 .ToHashSet();
             args.Foreach(trait => traits.Remove(trait));
             byPlayer.Entity.WatchedAttributes
-                .SetStringArray("extraTraits", traits.ToArray());
+                .SetStringArray("extraTraits", [.. traits]);
         }
     }
 

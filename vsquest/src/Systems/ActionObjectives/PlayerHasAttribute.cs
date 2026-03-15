@@ -12,7 +12,7 @@ namespace VsQuest
 
         public List<int> progress(IPlayer byPlayer, params string[] args)
         {
-            return isCompletable(byPlayer, args) ? new List<int>(new int[] { 1 }) : new List<int>(new int[] { 0 });
+            return isCompletable(byPlayer, args) ? new List<int>([1]) : new List<int>([0]);
         }
     }
 }
