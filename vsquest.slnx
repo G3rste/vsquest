@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+  </Folder>
   <Project Path="CakeBuild/CakeBuild.csproj" />
   <Project Path="vsquest/vsquest.csproj" />
 </Solution>

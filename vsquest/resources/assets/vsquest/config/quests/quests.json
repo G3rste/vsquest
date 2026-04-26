@@ -1,37 +1,37 @@
 [
-    {
-        "id": "vsquest:quest-freeghost",
-        "cooldown": 20,
-        "perPlayer": true,
-        "onAcceptedActions": [
-            {
-                "id": "playsound",
-                "args": [
-                    "game:sounds/effect/translocate-breakdimension"
-                ]
-            }
-        ],
-        "actionObjectives": [
-            {
-                "id": "plantflowers",
-                "args": [
-                    "8"
-                ]
-            }
-        ],
-        "itemRewards": [
-            {
-                "itemCode": "game:gear-rusty",
-                "amount": 3
-            }
-        ],
-        "actionRewards": [
-            {
-                "id": "despawnquestgiver",
-                "args": [
-                    "8000"
-                ]
-            }
-        ]
-    }
+	{
+		"id": "vsquest:quest-freeghost",
+		"cooldown": 20,
+		"perPlayer": true,
+		"onAcceptedActions": [
+			{
+				"id": "playsound",
+				"data": {
+					location: "game:sounds/effect/translocate-breakdimension"
+				}
+			}
+		],
+		"objectives": [
+			{
+				"id": "plantflowers",
+				"data": {
+					amount: 8
+				}
+			}
+		],
+		"itemRewards": [
+			{
+				"itemCode": "game:gear-rusty",
+				"amount": 3
+			}
+		],
+		"onCompletedActions": [
+			{
+				"id": "despawnquestgiver",
+				"data": {
+					delay: 8000
+				}
+			}
+		]
+	}
 ]
