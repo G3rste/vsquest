@@ -246,7 +246,7 @@ namespace VsQuest
                 var stack = new ItemStack(item, reward.amount);
                 if (!fromPlayer.InventoryManager.TryGiveItemstack(stack))
                 {
-                    sapi.World.SpawnItemEntity(stack, questgiver.ServerPos.XYZ);
+                    sapi.World.SpawnItemEntity(stack, questgiver.Pos.XYZ);
                 }
             }
             List<RandomItem> randomItems = quest.randomItemRewards.items;
@@ -263,7 +263,7 @@ namespace VsQuest
                 var stack = new ItemStack(item, sapi.World.Rand.Next(randomItem.minAmount, randomItem.maxAmount + 1));
                 if (!fromPlayer.InventoryManager.TryGiveItemstack(stack))
                 {
-                    sapi.World.SpawnItemEntity(stack, questgiver.ServerPos.XYZ);
+                    sapi.World.SpawnItemEntity(stack, questgiver.Pos.XYZ);
                 }
             }
             foreach (var action in quest.actionRewards)

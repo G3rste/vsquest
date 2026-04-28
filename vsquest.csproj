@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>Net8.0</TargetFramework>
+		<TargetFramework>net10.0</TargetFramework>
 	</PropertyGroup>
 	
 	<ItemGroup>
@@ -33,12 +33,6 @@
 		</None>
 	</ItemGroup>
 	
-	<Target Name="Prepare Debug" AfterTargets="PostBuildEvent" Condition="'$(Configuration)' == 'Debug'">
-		<Exec Command="C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NonInteractive -executionpolicy Unrestricted -command &quot;&amp; { .\prepare-debugging.ps1 } &quot;" LogStandardErrorAsError="True" ContinueOnError="False" WorkingDirectory="$(MSBuildProjectDirectory)" />
-	</Target>
 	
-	<Target Name="Package" AfterTargets="PostBuildEvent" Condition="'$(Configuration)' == 'Release'">
-		<Exec Command="C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NonInteractive -executionpolicy Unrestricted -command &quot;&amp; { .\update-lang.ps1 } &quot;" LogStandardErrorAsError="True" ContinueOnError="False" WorkingDirectory="$(MSBuildProjectDirectory)" />
-		<ZipDirectory DestinationFile="bin/$(TargetName).zip" SourceDirectory="$(TargetDir)" Overwrite="true" />
-	</Target>
+
 </Project>

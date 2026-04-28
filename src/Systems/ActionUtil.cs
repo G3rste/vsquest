@@ -23,7 +23,8 @@ namespace VsQuest
                     throw new QuestException(string.Format("Tried to spawn {0} for quest {1} but could not find the entity type!", code, message.questId));
                 }
                 var entity = sapi.World.ClassRegistry.CreateEntity(type);
-                entity.ServerPos = sapi.World.GetEntityById(message.questGiverId).ServerPos.Copy();
+                var giverPos = sapi.World.GetEntityById(message.questGiverId).Pos;
+                entity.Pos.SetPos(giverPos.X, giverPos.Y, giverPos.Z);
                 sapi.World.SpawnEntity(entity);
             }
         }
@@ -37,7 +38,8 @@ namespace VsQuest
                 throw new QuestException(string.Format("Tried to spawn {0} for quest {1} but could not find the entity type!", code, message.questId));
             }
             var entity = sapi.World.ClassRegistry.CreateEntity(type);
-            entity.ServerPos = sapi.World.GetEntityById(message.questGiverId).ServerPos.Copy();
+            var giverPos = sapi.World.GetEntityById(message.questGiverId).Pos;
+            entity.Pos.SetPos(giverPos.X, giverPos.Y, giverPos.Z);
             sapi.World.SpawnEntity(entity);
         }
 
@@ -66,7 +68,7 @@ namespace VsQuest
             var stack = new ItemStack(item, int.Parse(args[1]));
             if (!byPlayer.InventoryManager.TryGiveItemstack(stack))
             {
-                sapi.World.SpawnItemEntity(stack, byPlayer.Entity.ServerPos.XYZ);
+                sapi.World.SpawnItemEntity(stack, byPlayer.Entity.Pos.XYZ);
             }
         }
 
@@ -107,10 +109,11 @@ namespace VsQuest
             var questgiver = sapi.World.GetEntityById(message.questGiverId);
             if (questgiver != null)
             {
-                smoke.MinPos = questgiver.ServerPos.XYZ.AddCopy(-1.5, -0.5, -1.5);
+                smoke.MinPos = questgiver.Pos.XYZ.AddCopy(-1.5, -0.5, -1.5);
                 sapi.World.SpawnParticles(smoke);
             }
         }
+
         public static void AddTraits(ICoreServerAPI sapi, QuestMessage message, IServerPlayer byPlayer, string[] args)
         {
             var traits = byPlayer.Entity.WatchedAttributes
@@ -120,6 +123,7 @@ namespace VsQuest
             byPlayer.Entity.WatchedAttributes
                 .SetStringArray("extraTraits", traits.ToArray());
         }
+
         public static void RemoveTraits(ICoreServerAPI sapi, QuestMessage message, IServerPlayer byPlayer, string[] args)
         {
             var traits = byPlayer.Entity.WatchedAttributes
