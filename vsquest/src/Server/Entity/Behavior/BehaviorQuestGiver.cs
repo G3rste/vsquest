@@ -8,59 +8,58 @@ using Vintagestory.API.Server;
 using Vintagestory.API.Client;
 using Vintagestory.GameContent;
 using System.Linq;
+using Vintagestory.API.Util;
+using VSQuest.Client;
+using VSQuest.Model;
 
-namespace VSQuest
+namespace VSQuest.Server
 {
 	public class EntityBehaviorQuestGiver(Entity entity) : EntityBehavior(entity)
 	{
 		public override string PropertyName() => "questgiver";
 
-		private string[] quests = [];
-		private bool selectRandom;
-		private int selectRandomCount;
+		string[] _quests = [];
+		bool _selectRandom;
+		int _selectRandomCount;
 
 		public override void Initialize(EntityProperties properties, JsonObject attributes)
 		{
-			base.Initialize(properties, attributes);
-			selectRandom = attributes["selectrandom"].AsBool();
-			selectRandomCount = attributes["selectrandomcount"].AsInt(1);
+			_selectRandom = attributes["selectrandom"].AsBool();
+			_selectRandomCount = attributes["selectrandomcount"].AsInt(1);
 
-			quests = [.. attributes["quests"].AsArray<string>([]).OfType<string>()];
+			_quests = [.. attributes["quests"].AsArray<string>([]).OfType<string>()];
 
 			// simple randomizer that will always select the same quests for each entityId
-			if (selectRandom)
+			if (_selectRandom)
 			{
 				int seed = unchecked((int)entity.EntityId);
-				var questList = new List<string>(quests);
+				var questList = new List<string>(_quests);
 				var resultList = new List<string>();
-				for (int i = 0; i < Math.Min(selectRandomCount, quests.Length); i++)
+
+				for (int i = 0; i < Math.Min(_selectRandomCount, _quests.Length); i++)
 				{
 					seed = (seed * 5 + 7) % questList.Count;
 					resultList.Add(questList[seed]);
 					questList.RemoveAt(seed);
 				}
-				quests = [.. resultList];
+				_quests = [.. resultList];
 			}
 		}
 
 		public override void AfterInitialized(bool onFirstSpawn)
 		{
-			base.AfterInitialized(onFirstSpawn);
 			var bh = entity.GetBehavior<EntityBehaviorConversable>();
-			bh?.OnControllerCreated += (controller) =>
-			{
-				controller.DialogTriggers += Dialog_DialogTriggers;
-			};
+			bh?.OnControllerCreated += controller => controller.DialogTriggers += Dialog_DialogTriggers;
 		}
 
-		private int Dialog_DialogTriggers(EntityAgent triggeringEntity, string value, JsonObject data)
+		int Dialog_DialogTriggers(EntityAgent triggeringEntity, string value, JsonObject data)
 		{
-			var behaviorConversable = entity.GetBehavior<EntityBehaviorConversable>();
-			behaviorConversable?.Dialog?.TryClose();
-
-			if (value == "openquests" && triggeringEntity.Api is ICoreServerAPI sapi)
+			if (value == "openquests")
 			{
-				SendQuestInfoMessageToClient(sapi, (EntityPlayer)triggeringEntity);
+				var behaviorConversable = entity.GetBehavior<EntityBehaviorConversable>();
+				behaviorConversable?.Dialog?.TryClose();
+
+				SendQuestInfoMessageToClient((EntityPlayer)triggeringEntity);
 				return 0;
 			}
 
@@ -71,40 +70,46 @@ namespace VSQuest
 		public override void OnInteract(EntityAgent byEntity, ItemSlot itemslot, Vec3d hitPosition, EnumInteractMode mode, ref EnumHandling handled)
 		{
 			if (entity.Alive
-				&& entity.Api is ICoreServerAPI sapi
 				&& byEntity is EntityPlayer player
 				&& mode == EnumInteractMode.Interact
 				&& player.Controls.Sneak
 				&& !entity.HasBehavior<EntityBehaviorConversable>())
 			{
-				SendQuestInfoMessageToClient(sapi, player);
+				SendQuestInfoMessageToClient(player);
 			}
 		}
 
-		public void SendQuestInfoMessageToClient(ICoreServerAPI sapi, EntityPlayer player)
+		public void SendQuestInfoMessageToClient(EntityPlayer player)
 		{
-			var questSystem = sapi.ModLoader.GetModSystem<QuestSystem>();
-			var activeQuests = questSystem.GetPlayerQuests(player.PlayerUID).FindAll(quest => quest.QuestGiverId == entity.EntityId);
+			var questSystem = ApiModHelper.GetModSystem<QuestSystem>();
+			var activeQuests = questSystem.Server.GetQuests(player.PlayerUID).FindAll(quest => quest.Info.GiverId == entity.EntityId);
+
 			var availableQuestIds = new List<string>();
-			foreach (var questId in quests)
+			foreach (var questId in _quests)
 			{
 				var quest = questSystem.QuestRegistry[questId];
-				var key = quest.PerPlayer ? $"lastaccepted-{questId}-{player.PlayerUID}" : $"lastaccepted-{questId}";
-				if (entity.WatchedAttributes.GetDouble(key, -quest.Cooldown) + quest.Cooldown < sapi.World.Calendar.TotalDays
-						&& activeQuests.Find(activeQuest => activeQuest.QuestId == questId && activeQuest.QuestGiverId == entity.EntityId) == null
-						&& PredecessorsCompleted(quest, player.PlayerUID))
+
+				if (quest.Cooldown >= 0)
+				{
+					var key = $"lastcompletion-{questId}";
+					var target = quest.PerPlayer ? player : entity;
+					var lastCompletion = target.WatchedAttributes.GetDouble(key, 0);
+
+					if (quest.Cooldown + lastCompletion > ApiModHelper.TotalDays)
+					{
+						continue;
+					}
+				}
+
+				if (activeQuests.All(quest => quest.Info.Id != questId || quest.Info.GiverId != entity.EntityId) && PredecessorsCompleted(quest, player.PlayerUID))
 				{
 					availableQuestIds.Add(questId);
 				}
 			}
-			var message = new QuestInfoMessage()
-			{
-				QuestGiverId = entity.EntityId,
-				AvailableQuestIds = availableQuestIds,
-				ActiveQuests = activeQuests
-			};
 
-			sapi.Network.GetChannel("vsquest").SendPacket(message, player.Player as IServerPlayer);
+			var activeQuestData = activeQuests.Select(quest => (quest.Info.Id, quest.IsCompletable(player.Player))).ToDictionary();
+			var message = new QuestGiverInfoMessage(entity.EntityId, availableQuestIds, activeQuestData);
+			ApiModHelper.GetChannel().SendPacket(message, player.Player as IServerPlayer);
 		}
 
 		public override WorldInteraction[]? GetInteractionHelp(IClientWorldAccessor world, EntitySelection es, IClientPlayer player, ref EnumHandling handled)
@@ -122,11 +127,10 @@ namespace VSQuest
 			else { return base.GetInteractionHelp(world, es, player, ref handled); }
 		}
 
-		private bool PredecessorsCompleted(Quest quest, string playerUID)
+		bool PredecessorsCompleted(QuestTemplate quest, string playerUID)
 		{
-			var completedQuests = new List<string>(entity.WatchedAttributes.GetStringArray($"playercompleted-{playerUID}", []));
-			return string.IsNullOrEmpty(quest.Predecessor)
-				|| completedQuests.Contains(quest.Predecessor);
+			var completedQuests = entity.WatchedAttributes.GetStringArray($"playercompleted-{playerUID}", []);
+			return quest.Predecessors.Count == 0 || quest.Predecessors.All(questId => completedQuests.Contains(questId));
 		}
 	}
 }

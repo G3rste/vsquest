@@ -22,9 +22,9 @@ namespace VSQuest.Client
 		int _curTab = 0;
 
 
-		public QuestGui(QuestInfoMessage message, QuestConfig config) : base(ApiModHelper.Api)
+		public QuestGui(QuestGiverInfoMessage message, QuestConfig config) : base(ApiModHelper.Api)
 		{
-			_questGiverId = message.QuestGiverId;
+			_questGiverId = message.GiverId;
 			_availableQuestIds = [.. message.AvailableQuestIds];
 			_activeQuestData = message.ActiveQuestData.ToDictionary();
 
@@ -32,7 +32,7 @@ namespace VSQuest.Client
 			Recompose();
 		}
 
-		public static QuestGui Show(QuestInfoMessage questInfo, QuestConfig config)
+		public static QuestGui Show(QuestGiverInfoMessage questInfo, QuestConfig config)
 		{
 			var gui = new QuestGui(questInfo, config);
 			gui.TryOpen(true);
@@ -137,22 +137,22 @@ namespace VSQuest.Client
 			return Lang.Get($"{questId}-desc");
 		}
 
-		static string ActiveQuestText(ActiveQuest quest)
+		static string ActiveQuestText(Quest quest)
 		{
-			string progress = Lang.Get($"{quest.QuestId}-obj", [..quest.Progress(ApiModHelper.Player).Select(x => x.ToString())]);
+			string progress = Lang.Get($"{quest.Info.Id}-obj", [..quest.Progress(ApiModHelper.Player).Select(x => x.ToString())]);
 			if (string.IsNullOrEmpty(progress))
 			{
-				return QuestText(quest.QuestId);
+				return QuestText(quest.Info.Id);
 			}
 			else
 			{
-				return $"{QuestText(quest.QuestId)}<br><br><strong>Progress</strong><br>{progress}";
+				return $"{QuestText(quest.Info.Id)}<br><br><strong>Progress</strong><br>{progress}";
 			}
 		}
 
 		bool AcceptQuest()
 		{
-			var message = new QuestAcceptedMessage(_questGiverId, _selectedAvailableQuestId);
+			var message = new QuestAcceptedMessage(_selectedAvailableQuestId, _questGiverId);
 			capi.Network.GetChannel("vsquest").SendPacket(message);
 			if (_closeGuiAfterAcceptingAndCompleting)
 			{
@@ -168,7 +168,7 @@ namespace VSQuest.Client
 
 		bool CompleteQuest()
 		{
-			var message = new QuestCompletedMessage(_questGiverId, _selectedActiveQuestId);
+			var message = new QuestCompletedMessage(_selectedActiveQuestId, _questGiverId);
 			capi.Network.GetChannel("vsquest").SendPacket(message);
 			if (_closeGuiAfterAcceptingAndCompleting)
 			{

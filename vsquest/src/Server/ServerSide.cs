@@ -1,113 +1,174 @@
-﻿using Newtonsoft.Json.Linq;
-using ProtoBuf;
+﻿using ProtoBuf;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Reflection;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Config;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
+using VSQuest.Model;
+using VSQuest.Model.Action;
 
 namespace VSQuest.Server
 {
-	public class Playsound : IQuestActionData
+	public class TargetData : IObjectiveData
 	{
-		public string Path { get; set; } = "";
+		public required string[] Codes { get; set; }
+		public required int Amount { get; set; }
 	}
 
-	public class QuestActionTemplate(Type dataType, TestQuestAction action)
+	public class BlockData : IObjectiveData
 	{
-		Type _dataType = dataType;
-		TestQuestAction _action = action;
-
-		public void Exec(IServerPlayer player, JObject json)
-		{
-			var data = json.ToObject(_dataType)!;
-			_action(ApiModHelper.Api, player, (IQuestActionData)data);
-		}
+		public required string[] Codes { get; set; }
+		public required int Amount { get; set; }
 	}
-
-	public interface IQuestActionData { }
-	public delegate void TestQuestAction(ICoreServerAPI api, IServerPlayer player, IQuestActionData data);
 
 	public class ServerSide
 	{
-		public Dictionary<string, Quest> QuestRegistry { get; private set; } = [];
-		public Dictionary<string, QuestAction> ActionRegistry { get; private set; } = [];
+		readonly Dictionary<string, IActiveActionObjective> _objectiveRegistry = [];
 
-		readonly ConcurrentDictionary<string, List<ActiveQuest>> _playerQuests = [];
+		readonly Dictionary<string, QuestTemplate> _questTemplates = [];
+		readonly Dictionary<string, IQuestActionTemplate> _actionTemplates = [];
+		readonly Dictionary<string, IObjectiveTemplate> _objectiveTemplates = [];
+
+		readonly ConcurrentDictionary<string, List<Quest>> _playerQuests = [];
 
 		public ServerSide(ICoreServerAPI api, Mod mod)
 		{
 			ApiModHelper.Api = api;
 			ApiModHelper.Mod = mod;
 
-			api.RegisterEntityBehaviorClass("questgiver", typeof(EntityBehaviorQuestGiver));
-
-			api.Network.GetChannel(mod.Info.ModID)
+			ApiModHelper.GetChannel()
 				.SetMessageHandler<QuestAcceptedMessage>(OnQuestAccepted)
 				.SetMessageHandler<QuestCompletedMessage>(OnQuestCompleted);
 
-			ActionRegistry.Add("despawnquestgiver", (api, message, byPlayer, args) => api.World.RegisterCallback(dt => api.World.GetEntityById(message.QuestGiverId).Die(EnumDespawnReason.Removed), int.Parse(args[0])));
-			ActionRegistry.Add("playsound", (api, message, byPlayer, args) => api.World.PlaySoundFor(AssetLocation.CreateOrNull(args[0]), byPlayer));
-			ActionRegistry.Add("spawnentities", ActionUtil.SpawnEntities);
-			ActionRegistry.Add("spawnany", ActionUtil.SpawnAnyOfEntities);
-			ActionRegistry.Add("spawnsmoke", ActionUtil.SpawnSmoke);
-			ActionRegistry.Add("recruitentity", ActionUtil.RecruitEntity);
-			ActionRegistry.Add("healplayer", (api, message, byPlayer, args) => byPlayer.Entity.ReceiveDamage(new() { Type = EnumDamageType.Heal }, 100));
-			ActionRegistry.Add("addplayerattribute", (api, message, byPlayer, args) => byPlayer.Entity.WatchedAttributes.SetString(args[0], args[1]));
-			ActionRegistry.Add("removeplayerattribute", (api, message, byPlayer, args) => byPlayer.Entity.WatchedAttributes.RemoveAttribute(args[0]));
-			ActionRegistry.Add("completequest", ActionUtil.CompleteQuest);
-			ActionRegistry.Add("acceptquest", (api, message, byPlayer, args) => OnQuestAccepted(byPlayer, new(long.Parse(args[0]), args[1])));
-			ActionRegistry.Add("giveitem", ActionUtil.GiveItem);
-			ActionRegistry.Add("addtraits", ActionUtil.AddTraits);
-			ActionRegistry.Add("removetraits", ActionUtil.RemoveTraits);
+			api.RegisterEntityBehaviorClass("questgiver", typeof(EntityBehaviorQuestGiver));
 
-			api.Event.GameWorldSave += () => OnSave();
-			api.Event.PlayerDisconnect += player => OnDisconnect(player);
-			api.Event.OnEntityDeath += (entity, dmgSource) => OnEntityDeath(entity, dmgSource);
-			api.Event.DidBreakBlock += (byPlayer, blockId, blockSel) => GetPlayerQuests(byPlayer.PlayerUID).ForEach(quest => quest.OnBlockBroken(ApiModHelper.GetBlock(blockId).Code.Path));
-			api.Event.DidPlaceBlock += (byPlayer, oldBlockId, blockSel, itemstack) => GetPlayerQuests(byPlayer.PlayerUID).ForEach(quest => quest.OnBlockPlaced(ApiModHelper.GetBlock(blockSel.Position).Code.Path));
+			_objectiveTemplates.Add("kill", new ObjectiveTemplate<TargetData>());
+
+			_objectiveRegistry.Add("plantflowers", new NearbyFlowersActionObjective());
+			_objectiveRegistry.Add("hasAttribute", new PlayerHasAttributeActionObjective());
+
+			api.Event.GameWorldSave += OnSave;
+			api.Event.PlayerJoin += OnConnect;
+			api.Event.PlayerDisconnect += OnDisconnect;
+
+
+
+
+
+
+
+			api.Event.OnEntityDeath += OnEntityDeath;
+			api.Event.DidBreakBlock += DidBreakBlock;
+			api.Event.DidPlaceBlock += DidPlaceBlock;
 		}
 
-		public List<ActiveQuest> GetPlayerQuests(string playerUID)
-		{
-			return _playerQuests.GetOrAdd(playerUID, val => LoadPlayerQuests(val));
-		}
+		public void AddActionTemplate(string id, IQuestActionTemplate template) =>
+			_actionTemplates.Add(id, template);
 
-		void OnEntityDeath(Entity entity, DamageSource damageSource)
+		public void AddObjectiveTemplate(string id, IObjectiveTemplate template) =>
+			_objectiveTemplates.Add(id, template);
+
+		public void AddQuestTemplates(IEnumerable<QuestTemplate> templates)
 		{
-			if (damageSource?.SourceEntity is EntityPlayer player)
+			foreach (var template in templates)
 			{
-				GetPlayerQuests(player.PlayerUID).ForEach(quest => quest.OnEntityKilled(entity.Code.Path));
+				_questTemplates.Add(template.Id, template);
+
+				foreach (var actionContainer in template.OnAcceptActions)
+				{
+					var actionTemplate = _actionTemplates[actionContainer.Id];
+					actionContainer.SetTemplate(actionTemplate);
+				}
+
+				foreach (var actionContainer in template.OnCompleteActions)
+				{
+					var actionTemplate = _actionTemplates[actionContainer.Id];
+					actionContainer.SetTemplate(actionTemplate);
+				}
 			}
 		}
 
-		void OnDisconnect(IServerPlayer byPlayer)
+		void OnConnect(IServerPlayer player)
 		{
-			if (_playerQuests.TryGetValue(byPlayer.PlayerUID, out var activeQuests))
+			var uid = player.PlayerUID;
+			_playerQuests.TryAdd(uid, LoadPlayerQuests(uid));
+		}
+
+		void OnDisconnect(IServerPlayer player)
+		{
+			var uid = player.PlayerUID;
+			if (_playerQuests.TryGetValue(uid, out var quests))
 			{
-				SavePlayerQuests(byPlayer.PlayerUID, activeQuests);
-				_playerQuests.Remove(byPlayer.PlayerUID);
+				SavePlayerQuests(uid, quests);
+				_playerQuests.Remove(uid);
 			}
 		}
 
 		void OnSave()
 		{
-			foreach (var player in _playerQuests)
+			foreach (var (uid, quests) in _playerQuests)
 			{
-				SavePlayerQuests(player.Key, player.Value);
+				SavePlayerQuests(uid, quests);
 			}
 		}
 
-		void OnQuestAccepted(IServerPlayer fromPlayer, QuestAcceptedMessage message)
+		public List<Quest> GetQuests(string playerUID)
 		{
-			var quest = QuestRegistry[message.QuestId];
+			if (_playerQuests.TryGetValue(playerUID, out var quests))
+			{
+				return quests;
+			}
+			return [];
+		}
+
+
+
+
+
+
+
+
+		void OnEntityDeath(Entity entity, DamageSource? damageSource)
+		{
+			if (damageSource?.GetCauseEntity() is EntityPlayer player)
+			{
+				GetQuests(player.PlayerUID).ForEach(quest => quest.OnEntityKilled(entity.Code.Path));
+			}
+		}
+
+		
+
+		void DidPlaceBlock(IServerPlayer byPlayer, int _, BlockSelection blockSel, ItemStack __)
+		{
+			foreach (var quest in GetQuests(byPlayer.PlayerUID))
+			{
+				quest.OnBlockPlaced(ApiModHelper.GetBlock(blockSel.Position).Code.Path);
+			}
+		}
+
+		void DidBreakBlock(IServerPlayer byPlayer, int oldblockId, BlockSelection _)
+		{
+			foreach (var quest in GetQuests(byPlayer.PlayerUID))
+			{
+				quest.OnBlockBroken(ApiModHelper.GetBlock(oldblockId).Code.Path);
+			}
+		}
+
+		public void OnQuestAccepted(IServerPlayer player, QuestAcceptedMessage message)
+		{
+			var id = message.Id;
+			var template = _questTemplates[id];
+
+
+
 			var killTrackers = new List<EventTracker>();
 
-			foreach (var objective in quest.KillObjectives)
+			foreach (var objective in template.KillObjectives)
 			{
 				var tracker = new EventTracker()
 				{
@@ -119,7 +180,7 @@ namespace VSQuest.Server
 
 			var blockPlaceTrackers = new List<EventTracker>();
 
-			foreach (var objective in quest.BlockPlaceObjectives)
+			foreach (var objective in template.BlockPlaceObjectives)
 			{
 				var tracker = new EventTracker()
 				{
@@ -131,7 +192,7 @@ namespace VSQuest.Server
 
 			var blockBreakTrackers = new List<EventTracker>();
 
-			foreach (var objective in quest.BlockBreakObjectives)
+			foreach (var objective in template.BlockBreakObjectives)
 			{
 				var tracker = new EventTracker()
 				{
@@ -141,44 +202,37 @@ namespace VSQuest.Server
 				blockBreakTrackers.Add(tracker);
 			}
 
-			var activeQuest = new ActiveQuest()
+			var activeQuest = new Quest(new(id, message.GiverId, player), template)
 			{
-				QuestGiverId = message.QuestGiverId,
-				QuestId = message.QuestId,
 				KillTrackers = killTrackers,
 				BlockPlaceTrackers = blockPlaceTrackers,
 				BlockBreakTrackers = blockBreakTrackers
 			};
-			GetPlayerQuests(fromPlayer.PlayerUID).Add(activeQuest);
-
-			var questgiver = ApiModHelper.GetEntity(message.QuestGiverId);
-			var key = quest.PerPlayer ? $"lastaccepted-{quest.Id}-{fromPlayer.PlayerUID}" : $"lastaccepted-{quest.Id}";
-			questgiver.WatchedAttributes.SetDouble(key, ApiModHelper.TotalDays);
-			questgiver.WatchedAttributes.MarkPathDirty(key);
-
-			foreach (var action in quest.OnAcceptedActions)
+			GetQuests(player.PlayerUID).Add(activeQuest);
+			
+			foreach (var actionContainer in template.OnAcceptActions)
 			{
 				try
 				{
-					//ActionRegistry[action.Id].Invoke(ApiModHelper.Api, message, fromPlayer, action.Args);
+					actionContainer?.Exec(new(id, message.GiverId, player));
 				}
 				catch (Exception ex)
 				{
-					ApiModHelper.Error($"Action {action.Id} caused an error in quest {quest.Id}.");
+					ApiModHelper.Error($"Action {actionContainer.Id} caused an error in quest {id}.");
 					ApiModHelper.Error(ex);
-					ApiModHelper.SendLogMessage(fromPlayer, $"An error occurred during quest {quest.Id}, please check the server logs for more details.");
+					ApiModHelper.SendLogMessage(player, $"An error occurred during quest {id}, please check the server logs for more details.");
 				}
 			}
 		}
 
 		public void OnQuestCompleted(IServerPlayer fromPlayer, QuestCompletedMessage message)
 		{
-			var playerQuests = GetPlayerQuests(fromPlayer.PlayerUID);
-			var activeQuest = playerQuests.Find(q => q.QuestId == message.QuestId && q.QuestGiverId == message.QuestGiverId);
+			var playerQuests = GetQuests(fromPlayer.PlayerUID);
+			var activeQuest = playerQuests.Find(q => q.Info.Id == message.Id && q.Info.GiverId == message.GiverId);
 
 			if (activeQuest is null)
 			{
-				ApiModHelper.Error($@"Completed quest not found in active quests : ""{message.QuestId}"" from ""{message.QuestGiverId}""");
+				ApiModHelper.Error($@"Completed quest not found in active quests : ""{message.Id}"" from ""{message.GiverId}""");
 				return;
 			}
 
@@ -186,7 +240,15 @@ namespace VSQuest.Server
 			{
 				activeQuest.CompleteQuest(fromPlayer);
 				playerQuests.Remove(activeQuest);
-				var questgiver = ApiModHelper.GetEntity(message.QuestGiverId);
+
+				var quest = _questTemplates[message.Id];
+
+
+				var questgiver = ApiModHelper.GetEntity(message.GiverId);
+				var key = quest.PerPlayer ? $"lastaccepted-{quest.Id}-{fromPlayer.PlayerUID}" : $"lastaccepted-{quest.Id}";
+				questgiver.WatchedAttributes.SetDouble(key, ApiModHelper.TotalDays);
+				questgiver.WatchedAttributes.MarkPathDirty(key);
+
 				RewardPlayer(fromPlayer, message, questgiver);
 				MarkQuestCompleted(fromPlayer, message, questgiver);
 			}
@@ -198,8 +260,8 @@ namespace VSQuest.Server
 
 		void RewardPlayer(IServerPlayer fromPlayer, QuestCompletedMessage message, Entity questgiver)
 		{
-			var quest = QuestRegistry[message.QuestId];
-			foreach (var reward in quest.ItemRewards)
+			var template = _questTemplates[message.Id];
+			foreach (var reward in template.ItemRewards)
 			{
 				CollectibleObject? item = ApiModHelper.GetItem(AssetLocation.CreateOrNull(reward.ItemCode));
 				item ??= ApiModHelper.GetBlock(AssetLocation.CreateOrNull(reward.ItemCode));
@@ -213,8 +275,8 @@ namespace VSQuest.Server
 				}
 			}
 
-			List<RandomItem> randomItems = quest.RandomItemRewards.Items;
-			for (int i = 0; i < quest.RandomItemRewards.SelectAmount; i++)
+			List<RandomItem> randomItems = template.RandomItemRewards.Items;
+			for (int i = 0; i < template.RandomItemRewards.SelectAmount; i++)
 			{
 				if (randomItems.Count <= 0)
 				{
@@ -234,39 +296,39 @@ namespace VSQuest.Server
 				}
 			}
 
-			foreach (var action in quest.OnCompletedActions)
+			foreach (var actionContainer in template.OnCompleteActions)
 			{
 				try
 				{
-					//ActionRegistry[action.Id].Invoke(ApiModHelper.Api, message, fromPlayer, action.Args);
+					actionContainer.Exec(new(template.Id, message.GiverId, fromPlayer));
 				}
 				catch (Exception ex)
 				{
-					ApiModHelper.Error($"Action {action.Id} caused an error in quest {quest.Id}.");
+					ApiModHelper.Error($"Action {actionContainer.Id} caused an error in quest {template.Id}.");
 					ApiModHelper.Error(ex);
-					ApiModHelper.SendLogMessage(fromPlayer, $"An error occurred during quest {quest.Id}, please check the server logs for more details.");
+					ApiModHelper.SendLogMessage(fromPlayer, $"An error occurred during quest {template.Id}, please check the server logs for more details.");
 				}
 			}
 		}
 
-		static void MarkQuestCompleted(IServerPlayer fromPlayer, QuestCompletedMessage message, Entity questgiver)
+		static void MarkQuestCompleted(IServerPlayer player, QuestCompletedMessage message, Entity questGiver)
 		{
-			var completedQuests = new HashSet<string>(questgiver.WatchedAttributes.GetStringArray($"playercompleted-{fromPlayer.PlayerUID}", []))
+			var completedQuests = new HashSet<string>(questGiver.WatchedAttributes.GetStringArray($"playercompleted-{player.PlayerUID}", []))
 			{
-				message.QuestId
+				message.Id
 			};
 			var completedQuestsArray = new string[completedQuests.Count];
 			completedQuests.CopyTo(completedQuestsArray);
-			questgiver.WatchedAttributes.SetStringArray($"playercompleted-{fromPlayer.PlayerUID}", completedQuestsArray);
+			questGiver.WatchedAttributes.SetStringArray($"playercompleted-{player.PlayerUID}", completedQuestsArray);
 		}
 
-		static void SavePlayerQuests(string playerUID, List<ActiveQuest> activeQuests) => ApiModHelper.SaveData($"quests-{playerUID}", activeQuests);
+		static void SavePlayerQuests(string playerUID, List<Quest> activeQuests) => ApiModHelper.SaveData($"quests-{playerUID}", activeQuests);
 
-		static List<ActiveQuest> LoadPlayerQuests(string playerUID)
+		static List<Quest> LoadPlayerQuests(string playerUID)
 		{
 			try
 			{
-				return ApiModHelper.LoadData<List<ActiveQuest>>($"quests-{playerUID}") ?? [];
+				return ApiModHelper.LoadData<List<Quest>>($"quests-{playerUID}") ?? [];
 			}
 			catch (ProtoException)
 			{
@@ -292,8 +354,13 @@ namespace VSQuest.Server
 			set => _mod = value;
 		}
 
+		public static string ModId => Mod.Info.ModID;
 		public static double TotalDays => Api.World.Calendar.TotalDays;
 
+		public static void SpawnEntity(Entity entity) => Api.World.SpawnEntity(entity);
+		public static Entity CreateEntity(EntityProperties props) => Api.World.ClassRegistry.CreateEntity(props);
+		public static EntityProperties? GetEntityProps(string code) => Api.World.GetEntityType(new(code));
+		public static T GetModSystem<T>() where T: ModSystem => Api.ModLoader.GetModSystem<T>();
 		public static void SendLogMessage(IServerPlayer player, string message) => Api.SendMessage(player, GlobalConstants.InfoLogChatGroup, message, EnumChatType.Notification);
 		public static void SpawnItem(ItemStack stack, Vec3d position) => Api.World.SpawnItemEntity(stack, position);
 		public static int NextRand(int min, int max) => Api.World.Rand.Next(min, max);

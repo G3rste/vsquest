@@ -49,12 +49,12 @@ namespace VSQuest.Client
 			ApiModHelper.Api = api;
 			ApiModHelper.Mod = mod;
 
-			api.Network.GetChannel(mod.Info.ModID).SetMessageHandler<QuestInfoMessage>(OnQuestInfoMessage);
+			api.Network.GetChannel(mod.Info.ModID).SetMessageHandler<QuestGiverInfoMessage>(OnQuestGiverInfoMessage);
 
 			_config = QuestConfig.Get();
 		}
 
-		void OnQuestInfoMessage(QuestInfoMessage message)
+		void OnQuestGiverInfoMessage(QuestGiverInfoMessage message)
 		{
 			_gui = QuestGui.Show(message, _config);
 			//_gui.OnClosed += Gui_OnClosed;
