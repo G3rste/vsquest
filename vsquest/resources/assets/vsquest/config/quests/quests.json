@@ -13,10 +13,9 @@
 		],
 		"objectives": [
 			{
-				"id": "plantflowers",
-				"data": {
-					amount: 8
-				}
+				id: "kill",
+				codes: ["wolf-*"],
+				goal: 15
 			}
 		],
 		"itemRewards": [

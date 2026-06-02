@@ -11,6 +11,7 @@ using System.Linq;
 using Vintagestory.API.Util;
 using VSQuest.Client;
 using VSQuest.Model;
+using VSQuest.Model.Server.Data;
 
 namespace VSQuest.Server
 {
@@ -18,7 +19,7 @@ namespace VSQuest.Server
 	{
 		public override string PropertyName() => "questgiver";
 
-		string[] _quests = [];
+		string[] _questIds = [];
 		bool _selectRandom;
 		int _selectRandomCount;
 
@@ -27,22 +28,22 @@ namespace VSQuest.Server
 			_selectRandom = attributes["selectrandom"].AsBool();
 			_selectRandomCount = attributes["selectrandomcount"].AsInt(1);
 
-			_quests = [.. attributes["quests"].AsArray<string>([]).OfType<string>()];
+			_questIds = [.. attributes["quests"].AsArray<string>([]).OfType<string>()];
 
 			// simple randomizer that will always select the same quests for each entityId
 			if (_selectRandom)
 			{
 				int seed = unchecked((int)entity.EntityId);
-				var questList = new List<string>(_quests);
+				var questList = new List<string>(_questIds);
 				var resultList = new List<string>();
 
-				for (int i = 0; i < Math.Min(_selectRandomCount, _quests.Length); i++)
+				for (int i = 0; i < Math.Min(_selectRandomCount, _questIds.Length); i++)
 				{
 					seed = (seed * 5 + 7) % questList.Count;
 					resultList.Add(questList[seed]);
 					questList.RemoveAt(seed);
 				}
-				_quests = [.. resultList];
+				_questIds = [.. resultList];
 			}
 		}
 
@@ -59,7 +60,7 @@ namespace VSQuest.Server
 				var behaviorConversable = entity.GetBehavior<EntityBehaviorConversable>();
 				behaviorConversable?.Dialog?.TryClose();
 
-				SendQuestInfoMessageToClient((EntityPlayer)triggeringEntity);
+				SendQuestGiverDataTo((EntityPlayer)triggeringEntity);
 				return 0;
 			}
 
@@ -75,40 +76,45 @@ namespace VSQuest.Server
 				&& player.Controls.Sneak
 				&& !entity.HasBehavior<EntityBehaviorConversable>())
 			{
-				SendQuestInfoMessageToClient(player);
+				SendQuestGiverDataTo(player);
 			}
 		}
 
-		public void SendQuestInfoMessageToClient(EntityPlayer player)
+		public void SendQuestGiverDataTo(EntityPlayer player)
 		{
 			var questSystem = ApiModHelper.GetModSystem<QuestSystem>();
-			var activeQuests = questSystem.Server.GetQuests(player.PlayerUID).FindAll(quest => quest.Info.GiverId == entity.EntityId);
+			var activeQuests = questSystem.Server.GetQuests(player.PlayerUID, entity.EntityId);
 
 			var availableQuestIds = new List<string>();
-			foreach (var questId in _quests)
+			foreach (var questId in _questIds)
 			{
-				var quest = questSystem.QuestRegistry[questId];
-
-				if (quest.Cooldown >= 0)
-				{
-					var key = $"lastcompletion-{questId}";
-					var target = quest.PerPlayer ? player : entity;
-					var lastCompletion = target.WatchedAttributes.GetDouble(key, 0);
-
-					if (quest.Cooldown + lastCompletion > ApiModHelper.TotalDays)
-					{
-						continue;
-					}
-				}
-
-				if (activeQuests.All(quest => quest.Info.Id != questId || quest.Info.GiverId != entity.EntityId) && PredecessorsCompleted(quest, player.PlayerUID))
+				var template = questSystem.Server.GetQuestTemplate(questId);
+				var data = new RuntimeData(ApiModHelper.Api);
+				if (template.Locks.All(l => l.Check(data)))
 				{
 					availableQuestIds.Add(questId);
 				}
+
+				//if (template.Cooldown >= 0)
+				//{
+				//	var key = $"lastcompletion-{questId}";
+				//	var target = template.Shared ? entity : player;
+				//	var lastCompletion = target.WatchedAttributes.GetDouble(key, 0);
+
+				//	if (template.Cooldown + lastCompletion > ApiModHelper.TotalDays)
+				//	{
+				//		continue;
+				//	}
+				//}
+
+				//if (activeQuests.All(quest => quest.Id != questId || quest.GiverId != entity.EntityId) && template.PredecessorsCompletedBy(player))
+				//{
+				//	availableQuestIds.Add(questId);
+				//}
 			}
 
-			var activeQuestData = activeQuests.Select(quest => (quest.Info.Id, quest.IsCompletable(player.Player))).ToDictionary();
-			var message = new QuestGiverInfoMessage(entity.EntityId, availableQuestIds, activeQuestData);
+			var activeQuestData = activeQuests.Select(quest => (quest.Id, quest.Fullfilled)).ToDictionary();
+			var message = new QuestGiverInfoResponse(entity.EntityId, availableQuestIds, activeQuestData);
 			ApiModHelper.GetChannel().SendPacket(message, player.Player as IServerPlayer);
 		}
 
@@ -125,12 +131,6 @@ namespace VSQuest.Server
 				];
 			}
 			else { return base.GetInteractionHelp(world, es, player, ref handled); }
-		}
-
-		bool PredecessorsCompleted(QuestTemplate quest, string playerUID)
-		{
-			var completedQuests = entity.WatchedAttributes.GetStringArray($"playercompleted-{playerUID}", []);
-			return quest.Predecessors.Count == 0 || quest.Predecessors.All(questId => completedQuests.Contains(questId));
 		}
 	}
 }

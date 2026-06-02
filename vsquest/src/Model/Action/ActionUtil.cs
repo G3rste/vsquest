@@ -3,102 +3,108 @@ using System.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.MathTools;
-using Vintagestory.API.Server;
 using Vintagestory.API.Util;
-using VSQuest.Server;
+using VSQuest.Model.Server.Data;
 
-namespace VSQuest.Model.Action
+namespace VSQuest.Server.Model.Action
 {
 	public static class ActionUtil
 	{
-		public static void PlaySound(ICoreServerAPI api, QuestInfo info, SoundData data) =>
-			api.World.PlaySoundFor(AssetLocation.CreateOrNull(data.Path), info.Player);
+		public static void PlaySound(IQuest quest, SoundData data) =>
+			quest.Api.World.PlaySoundFor(AssetLocation.CreateOrNull(data.Path), quest.Player);
 
-		public static void DespawnQuestGiver(ICoreServerAPI api, QuestInfo info, DelayData data) =>
-			api.World.RegisterCallback(_ => api.World.GetEntityById(info.GiverId).Die(EnumDespawnReason.Removed), data.Milliseconds);
+		public static void DespawnQuestGiver(IQuest quest, DelayData data) =>
+			quest.Api.World.RegisterCallback(_ => ApiModHelper.GetEntity(quest.GiverId)?.Die(EnumDespawnReason.Removed), data.Milliseconds);
 
-		public static void Heal(ICoreServerAPI _, QuestInfo info, HealData data) =>
-			info.Player.Entity.ReceiveDamage(new() { Type = EnumDamageType.Heal }, data.Amount);
+		public static void Heal(IQuest quest, HealData data) =>
+			quest.Player.Entity.ReceiveDamage(new() { Type = EnumDamageType.Heal }, data.Amount);
 
-		public static void AddPlayerAttribute(ICoreServerAPI _, QuestInfo info, AttributeData<string> data) =>
-			info.Player.Entity.WatchedAttributes.SetString(data.Name, data.Value);
+		public static void AddPlayerAttribute(IQuest quest, AttributeData<string> data) =>
+			quest.Player.Entity.WatchedAttributes.SetString(data.Name, data.Value);
 
-		public static void RemovePlayerAttribute(ICoreServerAPI _, QuestInfo info, AttributeData data) =>
-			info.Player.Entity.WatchedAttributes.RemoveAttribute(data.Name);
+		public static void RemovePlayerAttribute(IQuest quest, AttributeData data) =>
+			quest.Player.Entity.WatchedAttributes.RemoveAttribute(data.Name);
 
-		public static void SpawnEntities(ICoreServerAPI api, QuestInfo info, EntityData data)
+		public static void SpawnEntities(IQuest quest, EntityData data)
 		{
-			var pos = api.World.GetEntityById(info.GiverId).Pos;
+			if (ApiModHelper.GetEntity(quest.GiverId) is not Entity target)
+			{
+				return;
+			}
+
 			foreach (var code in data.Codes)
 			{
-				TrySpawnEntity(info, code, pos);
+				TrySpawnEntity(quest, code, target.Pos);
 			}
 		}
 
-		public static void SpawnAnyOfEntities(ICoreServerAPI api, QuestInfo info, EntityData data)
+		public static void SpawnAnyOfEntities(IQuest quest, EntityData data)
 		{
-			var code = data.Codes[api.World.Rand.Next(0, data.Codes.Count)];
-			var pos = api.World.GetEntityById(info.GiverId).Pos;
-			TrySpawnEntity(info, code, pos);
+			var target = ApiModHelper.GetEntity(quest.GiverId) ?? quest.Player.Entity;
+			var code = data.Codes[quest.Api.World.Rand.Next(0, data.Codes.Count)];
+			TrySpawnEntity(quest, code, target.Pos);
 		}
 
-		static void TrySpawnEntity(QuestInfo info, string typeCode, EntityPos pos)
+		static void TrySpawnEntity(IQuest quest, string typeCode, EntityPos pos)
 		{
-			var props = ApiModHelper.GetEntityProps(typeCode) ?? throw new Exception($"Tried to spawn {typeCode} for quest {info.Id} but could not find the entity type!");
-			var entity = ApiModHelper.CreateEntity(props);
-			entity.Pos.SetFrom(pos);
-			ApiModHelper.SpawnEntity(entity);
+			var props = ApiModHelper.GetEntityProps(typeCode) ?? throw new Exception($"Tried to spawn {typeCode} forIQuest {quest.Id} but could not find the entity type!");
+			var target = ApiModHelper.CreateEntity(props);
+			target.Pos.SetFrom(pos);
+			ApiModHelper.SpawnEntity(target);
 		}
 
-		public static void RecruitEntity(ICoreServerAPI api, QuestInfo info)
+		public static void RecruitEntity(IQuest quest)
 		{
-			var recruit = api.World.GetEntityById(info.GiverId);
-			recruit.WatchedAttributes.SetDouble("employedSince", api.World.Calendar.TotalHours);
-			recruit.WatchedAttributes.SetString("guardedPlayerUid", info.Player.PlayerUID);
+			if (ApiModHelper.GetEntity(quest.GiverId) is not Entity recruit)
+			{
+				return;
+			}
+
+			recruit.WatchedAttributes.SetDouble("employedSince", quest.Api.World.Calendar.TotalHours);
+			recruit.WatchedAttributes.SetString("guardedPlayerUid", quest.Player.PlayerUID);
 			recruit.WatchedAttributes.SetBool("commandSit", false);
 			recruit.WatchedAttributes.MarkPathDirty("guardedPlayerUid");
 		}
 
-		public static void GiveItem(ICoreServerAPI api, QuestInfo info, ItemData data)
+		public static void GiveItem(IQuest quest, ItemData data)
 		{
 			var location = new AssetLocation(data.Code);
-			CollectibleObject? item = api.World.GetItem(location);
-			item ??= api.World.GetBlock(location);
+			CollectibleObject? item = quest.Api.World.GetItem(location);
+			item ??= quest.Api.World.GetBlock(location);
 
 			if (item == null)
 			{
-				throw new Exception($"Could not find item {data.Code} for quest {info.Id}!");
+				throw new Exception($"Could not find item {data.Code} forIQuest {quest.Id}!");
 			}
 
 			var stack = new ItemStack(item, data.Amount);
-			if (!info.Player.InventoryManager.TryGiveItemstack(stack))
+			if (!quest.Player.InventoryManager.TryGiveItemstack(stack))
 			{
-				api.World.SpawnItemEntity(stack, info.Player.Entity.Pos.XYZ);
+				quest.Api.World.SpawnItemEntity(stack, quest.Player.Entity.Pos.XYZ);
 			}
 		}
 
-		public static void AcceptQuest(ICoreServerAPI api, QuestInfo info, QuestData data)
+		public static void AcceptQuest(IQuest quest, QuestData data)
 		{
-			var questId = data.Id ?? info.Id;
-			var giverId = data.GiverId ?? info.GiverId;
+			var questId = data.Id ?? quest.Id;
+			var giverId = data.GiverId ?? quest.GiverId;
 
-			var questSystem = api.ModLoader.GetModSystem<QuestSystem>();
-			questSystem.Server.OnQuestAccepted(info.Player, new(questId, giverId));
+			var questSystem = quest.Api.ModLoader.GetModSystem<QuestSystem>();
+			questSystem.Server.OnQuestAccepted(quest.Player, new(questId, giverId));
 		}
 
-		public static void CompleteQuest(ICoreServerAPI api, QuestInfo info, QuestData data)
+		public static void CompleteQuest(IQuest quest, QuestData data)
 		{
-			var questId = data.Id ?? info.Id;
-			var giverId = data.GiverId ?? info.GiverId;
+			var questId = data.Id ?? quest.Id;
+			var giverId = data.GiverId ?? quest.GiverId;
 
-			var questSystem = api.ModLoader.GetModSystem<QuestSystem>();
-			questSystem.Server.OnQuestCompleted(info.Player, new(questId, giverId));
+			var questSystem = quest.Api.ModLoader.GetModSystem<QuestSystem>();
+			//questSystem.Server.OnQuestCompleted(quest.Player, new(questId, giverId));
 		}
 
-		public static void SpawnParticles(ICoreServerAPI api, QuestInfo info, ParticlesData data)
+		public static void SpawnParticles(IQuest quest, ParticlesData data)
 		{
-			var questgiver = api.World.GetEntityById(info.GiverId);
-			if (questgiver == null)
+			if (ApiModHelper.GetEntity(quest.GiverId) is not Entity target)
 			{
 				return;
 			}
@@ -106,7 +112,7 @@ namespace VSQuest.Model.Action
 			var smoke = new SimpleParticleProperties(
 				data.MinQty, data.MaxQty,
 				ColorUtil.ColorFromRgba(data.Color),
-				questgiver.Pos.XYZ.AddCopy(-1.5, -0.5, -1.5),
+				target.Pos.XYZ.AddCopy(-1.5, -0.5, -1.5),
 				data.MaxPosAsVec,
 				data.MinSpeedAsVec,
 				data.MaxSpeedAsVec,
@@ -116,12 +122,12 @@ namespace VSQuest.Model.Action
 				data.MaxSize,
 				data.Model
 			);
-			api.World.SpawnParticles(smoke);
+			quest.Api.World.SpawnParticles(smoke);
 		}
 
-		public static void AddTraits(ICoreServerAPI _, QuestInfo info, TraitsData data)
+		public static void AddTraits(IQuest quest, TraitsData data)
 		{
-			var player = info.Player;
+			var player = quest.Player;
 			var traits = player.Entity.WatchedAttributes
 				.GetStringArray("extraTraits", [])
 				.ToHashSet();
@@ -130,9 +136,9 @@ namespace VSQuest.Model.Action
 				.SetStringArray("extraTraits", [.. traits]);
 		}
 
-		public static void RemoveTraits(ICoreServerAPI _, QuestInfo info, TraitsData data)
+		public static void RemoveTraits(IQuest quest, TraitsData data)
 		{
-			var player = info.Player;
+			var player = quest.Player;
 			var traits = player.Entity.WatchedAttributes
 				.GetStringArray("extraTraits", [])
 				.ToHashSet();

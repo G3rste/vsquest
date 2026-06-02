@@ -38,7 +38,7 @@ namespace VSQuest.Client
 		}
 	}
 
-	public class ClientSide
+	public class ClientSide : IDisposable
 	{
 		readonly QuestConfig _config;
 
@@ -49,17 +49,23 @@ namespace VSQuest.Client
 			ApiModHelper.Api = api;
 			ApiModHelper.Mod = mod;
 
-			api.Network.GetChannel(mod.Info.ModID).SetMessageHandler<QuestGiverInfoMessage>(OnQuestGiverInfoMessage);
+			api.Network.GetChannel(mod.Info.ModID).SetMessageHandler<QuestGiverInfoResponse>(OnQuestGiverInfoMessage);
 
 			_config = QuestConfig.Get();
 		}
 
-		void OnQuestGiverInfoMessage(QuestGiverInfoMessage message)
+		void OnQuestGiverInfoMessage(QuestGiverInfoResponse message)
 		{
 			_gui = QuestGui.Show(message, _config);
 			//_gui.OnClosed += Gui_OnClosed;
 			//_gui.OnQuestAccepted += Gui_OnQuestAccepted;
 			//_gui.OnQuestCompleted += Gui_OnQuestCompleted;
+		}
+
+		public void Dispose()
+		{
+
+			GC.SuppressFinalize(this);
 		}
 	}
 
